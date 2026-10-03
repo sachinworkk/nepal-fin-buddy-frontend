@@ -24,26 +24,38 @@ export default function Login({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <form className="login" onSubmit={(e) => void submit(e)}>
-      <h2>Log in</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      {error && <p className="chat-error">{error}</p>}
-      <button type="submit" disabled={busy}>
-        {busy ? 'Logging in…' : 'Log in'}
-      </button>
-    </form>
+    <div className="login-wrap">
+      <form className="login" onSubmit={(e) => void submit(e)}>
+        <div className="login-head">
+          <h2>Welcome back</h2>
+          <p>Log in to take back control of your financial life.</p>
+        </div>
+        <div className="field">
+          <input
+            className="input"
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="field">
+          <input
+            className="input"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        {error && <p className="form-error">{error}</p>}
+        <button type="submit" className="btn btn-accent" disabled={busy}>
+          {busy ? 'Logging in…' : 'Log in'}
+        </button>
+        <p className="login-foot">Nepal Fin Buddy · Secure sign-in</p>
+      </form>
+    </div>
   )
 }

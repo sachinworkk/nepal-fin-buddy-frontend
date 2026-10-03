@@ -58,6 +58,10 @@ function Chat() {
 
   return (
     <div className="chat">
+      <div className="chat-head">
+        <h2>Chat</h2>
+        <span>Answers grounded in your bills and documents</span>
+      </div>
       <div className="chat-list" ref={listRef}>
         {messages.length === 0 && (
           <p className="chat-empty">Ask about your expenses, bills or documents.</p>
@@ -78,7 +82,11 @@ function Chat() {
             </div>
           </div>
         ))}
-        {busy && <div className="msg msg-assistant"><div className="msg-bubble">…</div></div>}
+        {busy && (
+          <div className="msg msg-assistant">
+            <div className="msg-bubble">…</div>
+          </div>
+        )}
       </div>
       {error && <p className="chat-error">{error}</p>}
       <div className="chat-input">
@@ -90,10 +98,11 @@ function Chat() {
           rows={2}
           disabled={busy}
         />
-        <button onClick={() => void submit()} disabled={busy || !input.trim()}>
+        <button className="btn btn-accent" onClick={() => void submit()} disabled={busy || !input.trim()}>
           Send
         </button>
       </div>
+      <p className="chat-hint">Enter to send · Shift+Enter for a new line</p>
     </div>
   )
 }
