@@ -375,6 +375,174 @@ main {
   margin: var(--sp-2) var(--sp-1) 0;
 }
 
+/* ── Snap (upload-edit-confirm) ────────────────────────── */
+.snap-error {
+  margin-bottom: var(--sp-3);
+}
+
+.snap-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-7) var(--sp-5);
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  text-align: center;
+  color: var(--text-2);
+  font-size: var(--text-sm);
+  transition: border-color 0.12s ease;
+}
+
+.snap-drop:hover,
+.snap-drop:focus-visible {
+  border-color: var(--text-1);
+  outline: none;
+}
+
+.snap-drop strong {
+  color: var(--text-1);
+  font-size: var(--text-base);
+}
+
+.snap-drop-icon {
+  font-size: 28px;
+}
+
+.snap-progress {
+  width: 240px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--bg);
+  overflow: hidden;
+  margin-top: var(--sp-2);
+}
+
+.snap-progress div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.15s ease;
+}
+
+.snap-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  padding: var(--sp-5);
+}
+
+.snap-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3) var(--sp-4);
+}
+
+.snap-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.snap-field span {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.snap-field .input {
+  width: 100%;
+}
+
+.snap-items-head {
+  margin: var(--sp-5) 0 var(--sp-2);
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.snap-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.snap-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px 110px 28px;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.snap-item .input {
+  width: 100%;
+}
+
+.snap-item-x {
+  height: 32px;
+  width: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: var(--text-lg);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+
+.snap-item-x:hover {
+  color: var(--danger);
+  background: var(--bg);
+}
+
+.snap-add {
+  margin-top: var(--sp-2);
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--sp-1) 0;
+}
+
+.snap-add:hover {
+  text-decoration: underline;
+}
+
+.snap-actions {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+.snap-done {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  align-items: flex-start;
+}
+
+.snap-done h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.snap-done p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--text-sm);
+}
+
 /* ── Footer band (dark, Rocket Money style) ────────────── */
 .footer {
   background: var(--ink);
@@ -697,6 +865,14 @@ main.wide {
 
   .msg-bubble {
     max-width: 92%;
+  }
+
+  .snap-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .snap-item {
+    grid-template-columns: minmax(0, 1fr) 64px 90px 28px;
   }
 
   .footer {

@@ -76,3 +76,79 @@ export const getSession = (id: string) => get<ChatSessionDetail>(`/chat/sessions
 
 export const sendMessage = (sessionId: string, content: string) =>
   post<ChatMessageOut>(`/chat/sessions/${sessionId}/messages`, { content })
+
+// ---- Bills (Snap) ----
+
+export interface BillItem {
+  description: string
+  quantity?: string | null
+  unit_price?: string | null
+  amount?: string | null
+}
+
+export interface BillOut {
+  id: string
+  vendor_name?: string | null
+  vendor_pan?: string | null
+  bill_number?: string | null
+  bill_date_ad?: string | null
+  bill_date_bs_raw?: string | null
+  subtotal?: string | null
+  discount?: string | null
+  taxable_amount?: string | null
+  vat_amount?: string | null
+  total_amount?: string | null
+  status: 'extracted' | 'confirmed'
+  extraction_confidence?: number | null
+  items: BillItem[]
+}
+
+export const CATEGORIES = [
+  'groceries', 'dining', 'transport', 'utilities', 'rent', 'health',
+  'education', 'shopping', 'entertainment', 'fees', 'other',
+] as const
+export type Category = (typeof CATEGORIES)[number]
+
+export async function uploadBill(
+  file: File,
+  onProgress?: (pct: number) => void,
+): Promise<BillOut> {
+  const token = localStorage.getItem('token')
+  const body = new FormData()
+  body.append('file', file)
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${API_URL}/bills/upload`)
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => {
+      if (xhr.status === 401) {
+        localStorage.removeItem('token')
+        reject(new Error('Session expired — log in again'))
+        return
+      }
+      if (xhr.status >= 400) {
+        let detail = xhr.statusText
+        try {
+          const b = JSON.parse(xhr.responseText) as { detail?: string }
+          if (b.detail) detail = b.detail
+        } catch { /* non-JSON body */ }
+        reject(new Error(`${xhr.status} ${detail}`))
+        return
+      }
+      resolve(JSON.parse(xhr.responseText) as BillOut)
+    }
+    xhr.onerror = () => reject(new Error('Network error during upload'))
+    xhr.send(body)
+  })
+}
+
+export const updateBill = (billId: string, body: Partial<BillOut>) =>
+  api<BillOut>(`/bills/${billId}`, { method: 'PATCH', body: JSON.stringify(body) })
+
+export const confirmBill = (
+  billId: string,
+  body: Partial<BillOut> & { category: Category; total_amount: string; bill_date_ad: string },
+) => post<BillOut>(`/bills/${billId}/confirm`, body)

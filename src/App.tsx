@@ -4,6 +4,7 @@ import './App.css'
 import Chat from './Chat'
 import Landing from './Dashboard'
 import Login from './Login'
+import Snap from './Snap'
 
 const queryClient = new QueryClient()
 
@@ -60,7 +61,7 @@ function Shell() {
         path="/snap"
         element={
           <AuthedShell>
-            <Placeholder title="Snap a bill" sub="Upload a bill photo or PDF to extract an expense." />
+            <Snap />
           </AuthedShell>
         }
       />
