@@ -148,6 +148,36 @@ export async function uploadBill(
 export const updateBill = (billId: string, body: Partial<BillOut>) =>
   api<BillOut>(`/bills/${billId}`, { method: 'PATCH', body: JSON.stringify(body) })
 
+// ---- Expenses ----
+
+export interface ExpenseOut {
+  id: string
+  amount: string
+  category: string
+  merchant?: string | null
+  note?: string | null
+  payment_method?: string | null
+  source: 'manual' | 'chat' | 'bill'
+  bill_id?: string | null
+  expense_date_ad: string
+  expense_date_bs: string
+  created_at: string
+}
+
+export interface ExpenseIn {
+  amount: string
+  category: Category
+  merchant?: string
+  note?: string
+  payment_method?: string
+  expense_date: string
+}
+
+export const createExpense = (body: ExpenseIn) => post<ExpenseOut>('/expenses', body)
+
+export const listExpenses = (limit = 50, offset = 0) =>
+  get<ExpenseOut[]>(`/expenses?limit=${limit}&offset=${offset}`)
+
 export const confirmBill = (
   billId: string,
   body: Partial<BillOut> & { category: Category; total_amount: string; bill_date_ad: string },

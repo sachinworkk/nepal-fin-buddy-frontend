@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, NavLink, Route, Routes } from 'react-router-dom'
 import './App.css'
 import Chat from './Chat'
+import Expenses from './Expenses'
 import Landing from './Dashboard'
 import Login from './Login'
 import Snap from './Snap'
@@ -69,7 +70,7 @@ function Shell() {
         path="/expenses"
         element={
           <AuthedShell>
-            <Placeholder title="Expenses" sub="Your recorded expenses will appear here." />
+            <Expenses />
           </AuthedShell>
         }
       />
