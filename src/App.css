@@ -901,6 +901,43 @@ main.wide {
   color: var(--text-1);
 }
 
+.expenses-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.expense-form {
+  margin: var(--sp-5) 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  padding: var(--sp-5);
+}
+
+.expense-form-note {
+  grid-column: span 2;
+}
+
+.expense-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+@media (max-width: 640px) {
+  .expenses-topbar {
+    flex-direction: column;
+  }
+
+  .expense-form-note {
+    grid-column: auto;
+  }
+}
+
 .expenses-card {
   background: var(--surface);
   border: 1px solid var(--border);

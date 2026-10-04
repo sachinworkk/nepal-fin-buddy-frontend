@@ -164,6 +164,17 @@ export interface ExpenseOut {
   created_at: string
 }
 
+export interface ExpenseIn {
+  amount: string
+  category: Category
+  merchant?: string
+  note?: string
+  payment_method?: string
+  expense_date: string
+}
+
+export const createExpense = (body: ExpenseIn) => post<ExpenseOut>('/expenses', body)
+
 export const listExpenses = (limit = 50, offset = 0) =>
   get<ExpenseOut[]>(`/expenses?limit=${limit}&offset=${offset}`)
 

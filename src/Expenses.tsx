@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { listExpenses, type ExpenseOut } from './api'
+import ExpenseForm from './ExpenseForm'
 
 function formatNpr(amount: string) {
   const n = Number(amount)
@@ -22,6 +24,7 @@ const SOURCE_LABEL: Record<ExpenseOut['source'], string> = {
 }
 
 export default function Expenses() {
+  const [showForm, setShowForm] = useState(false)
   const { data, isLoading, error } = useQuery({
     queryKey: ['expenses'],
     queryFn: () => listExpenses(),
@@ -31,8 +34,23 @@ export default function Expenses() {
 
   return (
     <>
-      <h2 className="page-title">Expenses</h2>
-      <p className="page-sub">Every expense you've recorded — from bills, chat, or by hand.</p>
+      <div className="expenses-topbar">
+        <div>
+          <h2 className="page-title">Expenses</h2>
+          <p className="page-sub">Every expense you've recorded — from bills, chat, or by hand.</p>
+        </div>
+        {showForm ? (
+          <button className="btn" type="button" onClick={() => setShowForm(false)}>
+            Close
+          </button>
+        ) : (
+          <button className="btn btn-accent" type="button" onClick={() => setShowForm(true)}>
+            Add expense
+          </button>
+        )}
+      </div>
+
+      {showForm && <ExpenseForm onDone={() => setShowForm(false)} />}
 
       {error && <p className="form-error">{error instanceof Error ? error.message : String(error)}</p>}
 
