@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { createSession, sendMessage } from './api'
+import { createSession, sendMessage } from '../api/chat'
 
 interface UiMessage {
   role: 'user' | 'assistant'

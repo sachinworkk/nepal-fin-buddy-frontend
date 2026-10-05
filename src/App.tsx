@@ -1,21 +1,17 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter, Navigate, NavLink, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
-import Chat from './Chat'
-import Expenses from './Expenses'
-import Landing from './Dashboard'
-import Login from './Login'
-import Snap from './Snap'
+import { AuthedShell, PublicShell } from './components/Layout'
+import { isAuthed } from './lib/auth'
+import Chat from './pages/Chat'
+import Expenses from './pages/Expenses'
+import Landing from './pages/Landing'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Settings from './pages/Settings'
+import Snap from './pages/Snap'
 
 const queryClient = new QueryClient()
-
-function isAuthed() {
-  return !!localStorage.getItem('token')
-}
-
-function navClass({ isActive }: { isActive: boolean }) {
-  return `nav-link${isActive ? ' active' : ''}`
-}
 
 function Placeholder({ title, sub }: { title: string; sub: string }) {
   return (
@@ -27,148 +23,43 @@ function Placeholder({ title, sub }: { title: string; sub: string }) {
   )
 }
 
+const authed = (el: React.ReactNode) => <AuthedShell>{el}</AuthedShell>
+const goHome = () => window.location.assign('/')
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Shell />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              isAuthed() ? (
+                authed(
+                  <Placeholder
+                    title="Dashboard"
+                    sub="Overview of your expenses and bills will appear here."
+                  />,
+                )
+              ) : (
+                <PublicShell wide>
+                  <Landing />
+                </PublicShell>
+              )
+            }
+          />
+          <Route path="/login" element={isAuthed() ? <Navigate to="/" replace /> : <Login onDone={goHome} />} />
+          <Route
+            path="/register"
+            element={isAuthed() ? <Navigate to="/" replace /> : <Register onDone={goHome} />}
+          />
+          <Route path="/snap" element={authed(<Snap />)} />
+          <Route path="/expenses" element={authed(<Expenses />)} />
+          <Route path="/chat" element={authed(<Chat />)} />
+          <Route path="/settings" element={authed(<Settings />)} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </BrowserRouter>
     </QueryClientProvider>
-  )
-}
-
-function Shell() {
-  return (
-    <Routes>
-      {/* Public: landing page (authed users get the app) */}
-      <Route
-        path="/"
-        element={
-          isAuthed() ? (
-            <AuthedShell>
-              <Placeholder
-                title="Dashboard"
-                sub="Overview of your expenses and bills will appear here."
-              />
-            </AuthedShell>
-          ) : (
-            <LandingShell />
-          )
-        }
-      />
-      <Route path="/login" element={<LoginShell />} />
-      {/* Authed app routes */}
-      <Route
-        path="/snap"
-        element={
-          <AuthedShell>
-            <Snap />
-          </AuthedShell>
-        }
-      />
-      <Route
-        path="/expenses"
-        element={
-          <AuthedShell>
-            <Expenses />
-          </AuthedShell>
-        }
-      />
-      <Route
-        path="/chat"
-        element={
-          <AuthedShell>
-            <Chat />
-          </AuthedShell>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
-}
-
-function LoginShell() {
-  if (isAuthed()) {
-    return <Navigate to="/" replace />
-  }
-  return <Login onDone={() => (window.location.href = '/')} />
-}
-
-function LandingShell() {
-  return (
-    <div className="shell">
-      <header className="nav">
-        <span className="brand">
-          <span className="brand-mark" aria-hidden>
-            ₹
-          </span>
-          Nepal Fin Buddy
-        </span>
-        <nav>
-          <a href="#features" className="nav-link">
-            Features
-          </a>
-          <a href="#how-it-works" className="nav-link">
-            How it works
-          </a>
-          <a href="/login" className="btn btn-accent nav-cta">
-            Log in
-          </a>
-        </nav>
-      </header>
-      <main className="wide">
-        <Landing />
-      </main>
-      <footer className="footer">
-        <strong>Nepal Fin Buddy</strong>
-        <span>Personal finance, built for Nepal · NPR &amp; BS dates supported</span>
-      </footer>
-    </div>
-  )
-}
-
-function AuthedShell({ children }: { children: React.ReactNode }) {
-  if (!isAuthed()) {
-    return <Navigate to="/login" replace />
-  }
-  return (
-    <div className="shell">
-      <header className="nav">
-        <span className="brand">
-          <span className="brand-mark" aria-hidden>
-            ₹
-          </span>
-          Nepal Fin Buddy
-        </span>
-        <nav>
-          <NavLink to="/" end className={navClass}>
-            Dashboard
-          </NavLink>
-          <NavLink to="/snap" className={navClass}>
-            Snap
-          </NavLink>
-          <NavLink to="/expenses" className={navClass}>
-            Expenses
-          </NavLink>
-          <NavLink to="/chat" className={navClass}>
-            Chat
-          </NavLink>
-          <button
-            className="logout-btn"
-            onClick={() => {
-              localStorage.removeItem('token')
-              window.location.href = '/'
-            }}
-          >
-            Log out
-          </button>
-        </nav>
-      </header>
-      <main>{children}</main>
-      <footer className="footer">
-        <strong>Nepal Fin Buddy</strong>
-        <span>Personal finance, built for Nepal · NPR &amp; BS dates supported</span>
-      </footer>
-    </div>
   )
 }

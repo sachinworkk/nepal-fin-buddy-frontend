@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { login } from './api'
+import { Link } from 'react-router-dom'
+import { login } from '../api/auth'
 
 export default function Login({ onDone }: { onDone: () => void }) {
   const [email, setEmail] = useState('')
@@ -54,7 +55,9 @@ export default function Login({ onDone }: { onDone: () => void }) {
         <button type="submit" className="btn btn-accent" disabled={busy}>
           {busy ? 'Logging in…' : 'Log in'}
         </button>
-        <p className="login-foot">Nepal Fin Buddy · Secure sign-in</p>
+        <p className="login-foot">
+          New here? <Link to="/register">Create an account</Link>
+        </p>
       </form>
     </div>
   )
