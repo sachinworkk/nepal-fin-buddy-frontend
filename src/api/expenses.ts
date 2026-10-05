@@ -1,4 +1,4 @@
-import { get, post } from './client'
+import { del, getWithTotal, patch, post } from './client'
 
 export const CATEGORIES = [
   'groceries', 'dining', 'transport', 'utilities', 'rent', 'health',
@@ -33,5 +33,24 @@ export interface ExpenseIn {
 
 export const createExpense = (body: ExpenseIn) => post<ExpenseOut>('/expenses', body)
 
-export const listExpenses = (limit = 50, offset = 0) =>
-  get<ExpenseOut[]>(`/expenses?limit=${limit}&offset=${offset}`)
+export type ExpenseUpdate = Partial<Omit<ExpenseIn, 'category'>> & { category?: Category }
+
+export interface ExpenseFilters {
+  category?: string
+  q?: string
+  date_from?: string
+  date_to?: string
+  limit: number
+  offset: number
+}
+
+export const listExpenses = (f: ExpenseFilters) => {
+  const params = new URLSearchParams()
+  for (const [k, v] of Object.entries(f)) if (v !== undefined && v !== '') params.set(k, String(v))
+  return getWithTotal<ExpenseOut>(`/expenses?${params}`)
+}
+
+export const updateExpense = (id: string, body: ExpenseUpdate) =>
+  patch<ExpenseOut>(`/expenses/${id}`, body)
+
+export const deleteExpense = (id: string) => del(`/expenses/${id}`)

@@ -1,29 +1,12 @@
 import { useState } from 'react'
-import { toAsciiDigits, useBsConvert } from '../lib/dates'
+import { loadDateMode, saveDateMode, toAsciiDigits, useBsConvert, type DateMode } from '../lib/dates'
 
 export interface DateValue {
   ad?: string
   bs?: string
 }
 
-type Mode = 'ad' | 'bs'
-const KEY = 'dateInputMode'
-
-function loadMode(): Mode {
-  try {
-    return localStorage.getItem(KEY) === 'bs' ? 'bs' : 'ad'
-  } catch {
-    return 'ad'
-  }
-}
-
-function saveMode(m: Mode) {
-  try {
-    localStorage.setItem(KEY, m)
-  } catch {
-    /* storage unavailable */
-  }
-}
+type Mode = DateMode
 
 interface Props {
   label: string
@@ -35,7 +18,7 @@ interface Props {
 
 /** AD/BS date entry. Emits exactly one of {ad} / {bs} (or {} when empty). */
 export default function DateInput({ label, value, onChange, bsOnly, required }: Props) {
-  const [pref, setPref] = useState<Mode>(loadMode)
+  const [pref, setPref] = useState<Mode>(loadDateMode)
   const mode: Mode = bsOnly ? 'bs' : pref
 
   const conv = useBsConvert(
@@ -45,7 +28,7 @@ export default function DateInput({ label, value, onChange, bsOnly, required }: 
   function switchMode(next: Mode) {
     if (next === mode) return
     setPref(next)
-    saveMode(next)
+    saveDateMode(next)
     // Carry the converted value across when we know it.
     if (next === 'bs') onChange(conv.data ? { bs: conv.data.bs } : {})
     else onChange(conv.data ? { ad: conv.data.ad } : {})

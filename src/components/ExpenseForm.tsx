@@ -1,6 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { CATEGORIES, createExpense, type Category, type ExpenseOut } from '../api/expenses'
+import {
+  CATEGORIES,
+  createExpense,
+  updateExpense,
+  type Category,
+  type ExpenseIn,
+  type ExpenseOut,
+} from '../api/expenses'
+import { loadDateMode } from '../lib/dates'
 import DateInput, { type DateValue } from './DateInput'
 
 const emptyForm = {
@@ -12,14 +20,30 @@ const emptyForm = {
 }
 const today = (): DateValue => ({ ad: new Date().toISOString().slice(0, 10) })
 
-export default function ExpenseForm({ onDone }: { onDone: () => void }) {
+function initialDate(e?: ExpenseOut): DateValue {
+  if (!e) return today()
+  return loadDateMode() === 'bs' ? { bs: e.expense_date_bs } : { ad: e.expense_date_ad }
+}
+
+/** Create form, or edit form when `expense` is given. */
+export default function ExpenseForm({ onDone, expense }: { onDone: () => void; expense?: ExpenseOut }) {
   const queryClient = useQueryClient()
-  const [form, setForm] = useState(emptyForm)
-  const [date, setDate] = useState<DateValue>(today)
+  const [form, setForm] = useState(
+    expense
+      ? {
+          amount: String(expense.amount),
+          category: expense.category as Category,
+          merchant: expense.merchant ?? '',
+          note: expense.note ?? '',
+          payment_method: expense.payment_method ?? '',
+        }
+      : emptyForm,
+  )
+  const [date, setDate] = useState<DateValue>(() => initialDate(expense))
 
   const mutation = useMutation({
-    mutationFn: (body: typeof emptyForm) =>
-      createExpense({
+    mutationFn: (body: typeof emptyForm) => {
+      const payload: ExpenseIn = {
         amount: body.amount,
         category: body.category,
         merchant: body.merchant || undefined,
@@ -27,11 +51,20 @@ export default function ExpenseForm({ onDone }: { onDone: () => void }) {
         payment_method: body.payment_method || undefined,
         expense_date: date.ad,
         expense_date_bs: date.bs,
-      }),
-    onSuccess: (created: ExpenseOut) => {
-      queryClient.setQueryData<ExpenseOut[]>(['expenses'], (prev) =>
-        prev ? [created, ...prev] : [created],
-      )
+      }
+      return expense
+        ? updateExpense(expense.id, {
+            ...payload,
+            // Allow clearing optional text fields when editing.
+            merchant: body.merchant,
+            note: body.note,
+            payment_method: body.payment_method,
+          })
+        : createExpense(payload)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['expenses'] })
+      void queryClient.invalidateQueries({ queryKey: ['stats'] })
       onDone()
     },
   })
@@ -109,7 +142,7 @@ export default function ExpenseForm({ onDone }: { onDone: () => void }) {
           Cancel
         </button>
         <button className="btn btn-accent" type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Saving…' : 'Save expense'}
+          {mutation.isPending ? 'Saving…' : expense ? 'Save changes' : 'Save expense'}
         </button>
       </div>
     </form>

@@ -4,6 +4,7 @@ import './App.css'
 import { AuthedShell, PublicShell } from './components/Layout'
 import { isAuthed } from './lib/auth'
 import Chat from './pages/Chat'
+import Dashboard from './pages/Dashboard'
 import Expenses from './pages/Expenses'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
@@ -12,16 +13,6 @@ import Settings from './pages/Settings'
 import Snap from './pages/Snap'
 
 const queryClient = new QueryClient()
-
-function Placeholder({ title, sub }: { title: string; sub: string }) {
-  return (
-    <>
-      <h2 className="page-title">{title}</h2>
-      <p className="page-sub">{sub}</p>
-      <p className="page-body">This section will appear here.</p>
-    </>
-  )
-}
 
 const authed = (el: React.ReactNode) => <AuthedShell>{el}</AuthedShell>
 const goHome = () => window.location.assign('/')
@@ -35,12 +26,7 @@ export default function App() {
             path="/"
             element={
               isAuthed() ? (
-                authed(
-                  <Placeholder
-                    title="Dashboard"
-                    sub="Overview of your expenses and bills will appear here."
-                  />,
-                )
+                authed(<Dashboard />)
               ) : (
                 <PublicShell wide>
                   <Landing />
