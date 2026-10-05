@@ -1,242 +1,241 @@
-/* Custom flat-vector illustrations — Nepali finance themes.
-   Palette matches the app tokens: red E0293C, ink 141414, soft periwinkle
-   card wash E9EDFB, yellow F6C445, teal 3E8E7E. */
+/* Outlined flat-color illustrations — finance themes.
+   Style: thick navy outline, flat fills, rounded joins (RGB-color-icon look).
+   Palette: coral F2665C (near the app accent), butter F9D77E, mint 7ED9C4,
+   sky A8C6F2, white, outline 23253A. */
 
-const RED = '#E0293C'
-const INK = '#141414'
-const WASH = '#E9EDFB'
-const YELLOW = '#F6C445'
-const TEAL = '#3E8E7E'
-const SKIN = '#F2C29B'
+const LINE = '#23253A'
+const CORAL = '#F2665C'
+const BUTTER = '#F9D77E'
+const MINT = '#7ED9C4'
+const SKY = '#A8C6F2'
+const WHITE = '#FFFFFF'
 
-function FloatingShapes() {
+/* Every illustration wraps its shapes in this so outlines stay uniform */
+const OUTLINE = {
+  stroke: LINE,
+  strokeWidth: 3,
+  strokeLinejoin: 'round' as const,
+  strokeLinecap: 'round' as const,
+}
+
+const LABEL = {
+  stroke: 'none',
+  fill: LINE,
+  fontWeight: 800,
+  textAnchor: 'middle' as const,
+  fontFamily: 'Inter, sans-serif',
+}
+
+function Sparkle({ x, y, r = 10, fill = BUTTER }: { x: number; y: number; r?: number; fill?: string }) {
+  const k = r * 0.28
+  return (
+    <path
+      d={`M${x} ${y - r} Q${x + k} ${y - k} ${x + r} ${y} Q${x + k} ${y + k} ${x} ${y + r} Q${x - k} ${y + k} ${x - r} ${y} Q${x - k} ${y - k} ${x} ${y - r} Z`}
+      fill={fill}
+    />
+  )
+}
+
+function Coin({ cx, cy, r }: { cx: number; cy: number; r: number }) {
   return (
     <g>
-      <circle cx="30" cy="24" r="5" fill={RED} />
-      <circle cx="250" cy="18" r="7" fill={YELLOW} />
-      <circle cx="270" cy="120" r="4" fill={TEAL} />
-      <path d="M20 90 q8 -14 16 0 t16 0" stroke={TEAL} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <path d="M240 60 q8 -14 16 0 t16 0" stroke={RED} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <path d="M60 20 l10 -10 M66 22 l10 -10" stroke={INK} strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+      <circle cx={cx} cy={cy} r={r} fill={BUTTER} />
+      <circle cx={cx} cy={cy} r={r * 0.68} fill="none" strokeWidth="2" />
+      <text x={cx} y={cy + r * 0.3} fontSize={r * 0.8} {...LABEL}>रू</text>
     </g>
   )
 }
 
-/* Hero: person in a Dhaka topi holding a giant NPR note, standing on coins */
+/* Receipt with a torn zigzag bottom; width must be a multiple of 18 */
+function Receipt({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+  const teeth = Array.from({ length: w / 18 }, () => 'l-9 8 l-9 -8').join(' ')
+  return <path d={`M${x} ${y} H${x + w} V${y + h} ${teeth} Z`} fill={WHITE} />
+}
+
+/* Hero: piggy bank catching a rupee coin, coin stack and a banknote */
 export function HeroIllustration() {
   return (
-    <svg viewBox="0 0 320 300" role="img" aria-label="Person in a Dhaka topi holding a large Nepali banknote">
-      <FloatingShapes />
-      {/* soft ground blob */}
-      <ellipse cx="160" cy="272" rx="130" ry="16" fill={WASH} />
+    <svg viewBox="0 0 320 300" role="img" aria-label="Piggy bank catching a rupee coin">
+      <g {...OUTLINE}>
+        {/* ground slab */}
+        <rect x="34" y="254" width="252" height="20" rx="10" fill={MINT} />
 
-      {/* NPR 100-style note */}
-      <g transform="rotate(-6 210 120)">
-        <rect x="150" y="60" width="150" height="76" rx="8" fill="#B03A48" />
-        <rect x="150" y="60" width="150" height="76" rx="8" fill="none" stroke="#8E2C37" strokeWidth="2" />
-        {/* mountain watermark */}
-        <path d="M162 122 l22 -26 14 16 10 -12 22 22 z" fill="#C9525E" />
-        <circle cx="284" cy="78" r="12" fill="#C9525E" />
-        {/* denomination */}
-        <text x="163" y="98" fontSize="26" fontWeight="800" fill="#FFF5F2" fontFamily="Inter, sans-serif">
-          १००
-        </text>
-        <text x="163" y="118" fontSize="10" fontWeight="600" fill="#E9B9BE" fontFamily="Inter, sans-serif">
-          नेपाल राष्ट्र बैंक
-        </text>
-      </g>
+        {/* banknote */}
+        <g transform="rotate(-12 66 80)">
+          <rect x="28" y="56" width="78" height="46" rx="6" fill={MINT} />
+          <rect x="36" y="64" width="62" height="30" rx="4" fill="none" strokeWidth="2" />
+          <circle cx="67" cy="79" r="9" fill={WHITE} />
+          <text x="67" y="83" fontSize="10" {...LABEL}>रू</text>
+        </g>
 
-      {/* character */}
-      {/* legs */}
-      <path d="M128 232 l-8 34 h12 l8 -32 z" fill={INK} />
-      <path d="M156 232 l6 32 h12 l-6 -34 z" fill={INK} />
-      {/* shoes */}
-      <ellipse cx="122" cy="268" rx="12" ry="5.5" fill={RED} />
-      <ellipse cx="170" cy="266" rx="12" ry="5.5" fill={RED} />
-      {/* torso — daura-style kurta */}
-      <path d="M118 152 q26 -12 52 0 l6 64 q-32 10 -64 0 z" fill={TEAL} />
-      {/* arm raised to note */}
-      <path d="M164 160 q22 4 30 -18" stroke={TEAL} strokeWidth="11" fill="none" strokeLinecap="round" />
-      <circle cx="196" cy="138" r="7.5" fill={SKIN} />
-      {/* other arm on hip */}
-      <path d="M120 162 q-14 10 -5 26" stroke={TEAL} strokeWidth="11" fill="none" strokeLinecap="round" />
-      <circle cx="114" cy="192" r="6.5" fill={SKIN} />
-      {/* head */}
-      <circle cx="142" cy="122" r="20" fill={SKIN} />
-      {/* ear */}
-      <circle cx="124" cy="124" r="3.5" fill={SKIN} />
-      {/* face */}
-      <circle cx="150" cy="120" r="2.2" fill={INK} />
-      <path d="M147 130 q5 3.5 10 0" stroke={INK} strokeWidth="2" fill="none" strokeLinecap="round" />
-      {/* Dhaka topi — tapered cap with patterned bands */}
-      <path d="M122 110 q20 -18 44 -4 l-3 12 q-19 -12 -38 4 z" fill={INK} />
-      <path d="M124 106 l40 -2" stroke={YELLOW} strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M129 99 l28 -3 M133 94 l20 -2" stroke={RED} strokeWidth="2" strokeLinecap="round" />
+        {/* falling coin + motion lines */}
+        <path d="M150 34 v10 M136 40 l4 8 M164 40 l-4 8" fill="none" />
+        <Coin cx={150} cy={84} r={24} />
 
-      {/* coins at feet */}
-      <g>
-        <circle cx="72" cy="262" r="12" fill={YELLOW} />
-        <text x="72" y="267" fontSize="11" fontWeight="800" textAnchor="middle" fill={INK} fontFamily="Inter, sans-serif">रू</text>
-        <circle cx="94" cy="268" r="9" fill={RED} />
-        <text x="94" y="272" fontSize="9" fontWeight="800" textAnchor="middle" fill="#fff" fontFamily="Inter, sans-serif">रू</text>
-        <circle cx="212" cy="268" r="9" fill={YELLOW} />
-        <text x="212" y="272" fontSize="9" fontWeight="800" textAnchor="middle" fill={INK} fontFamily="Inter, sans-serif">रू</text>
+        {/* piggy: legs, tail, body, ear, snout */}
+        {[88, 112, 160, 184].map((x) => (
+          <rect key={x} x={x} y="226" width="20" height="30" rx="6" fill={CORAL} />
+        ))}
+        <path d="M64 186 q-18 -2 -14 -16 q6 -10 12 0" fill="none" />
+        <ellipse cx="140" cy="190" rx="78" ry="58" fill={CORAL} />
+        <path d="M96 176 q8 -24 32 -32" stroke={WHITE} strokeWidth="6" fill="none" />
+        <path d="M176 140 L192 112 L204 146" fill={CORAL} />
+        <ellipse cx="218" cy="198" rx="15" ry="19" fill={CORAL} />
+        <ellipse cx="214" cy="193" rx="2.5" ry="4" fill={LINE} stroke="none" />
+        <ellipse cx="222" cy="203" rx="2.5" ry="4" fill={LINE} stroke="none" />
+        <circle cx="190" cy="172" r="4" fill={LINE} stroke="none" />
+        <rect x="120" y="134" width="40" height="8" rx="4" fill={LINE} />
+
+        {/* coin stack */}
+        {[240, 226, 212].map((y) => (
+          <rect key={y} x="244" y={y} width="48" height="14" rx="7" fill={BUTTER} />
+        ))}
+        <Coin cx={268} cy={186} r={18} />
+
+        <Sparkle x={262} y={70} r={14} />
+        <Sparkle x={34} y={150} r={8} fill={SKY} />
+        <circle cx="290" cy="128" r="5" fill={WHITE} />
       </g>
     </svg>
   )
 }
 
-/* Expense Tracking: NPR 500 note + rupee coins + ledger */
+/* Expense Tracking: wallet stuffed with notes + itemised receipt + coin */
 export function ExpenseIllustration() {
   return (
-    <svg viewBox="0 0 360 160" role="img" aria-label="Nepali banknote, coins and a ledger">
-      {/* ledger */}
-      <rect x="34" y="30" width="120" height="104" rx="8" fill="#fff" stroke={INK} strokeWidth="2.5" />
-      <path d="M34 30 h120 v14 h-120 z" fill={RED} />
-      {[0, 1, 2].map((i) => (
-        <g key={i}>
-          <rect x="46" y={60 + i * 24} width="10" height="10" rx="2" fill={WASH} />
-          <rect x="64" y={62 + i * 24} width={70 - i * 14} height="6" rx="3" fill="#D8DCE8" />
-          <text x={130 - i * 8} y={70 + i * 24} fontSize="9" fontWeight="700" fill={INK} fontFamily="Inter, sans-serif">
-            रू
-          </text>
-        </g>
-      ))}
-      {/* NPR 500 note */}
-      <g transform="rotate(8 250 80)">
-        <rect x="196" y="44" width="130" height="66" rx="7" fill="#8E3B5C" />
-        <path d="M208 96 l20 -22 12 14 8 -10 20 18 z" fill="#A55674" />
-        <circle cx="308" cy="60" r="10" fill="#A55674" />
-        <text x="208" y="76" fontSize="22" fontWeight="800" fill="#FBEEF3" fontFamily="Inter, sans-serif">५००</text>
-      </g>
-      {/* coins */}
-      <circle cx="292" cy="126" r="14" fill={YELLOW} />
-      <text x="292" y="131" fontSize="12" fontWeight="800" textAnchor="middle" fill={INK} fontFamily="Inter, sans-serif">रू</text>
-      <circle cx="318" cy="132" r="10" fill={RED} />
-      <text x="318" y="136" fontSize="9" fontWeight="800" textAnchor="middle" fill="#fff" fontFamily="Inter, sans-serif">रू</text>
-      {/* sparkles */}
-      <path d="M24 24 l8 8 M32 24 l-8 8" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="344" cy="30" r="5" fill={RED} />
-    </svg>
-  )
-}
+    <svg viewBox="0 0 360 160" role="img" aria-label="Wallet with cash next to a receipt">
+      <g {...OUTLINE}>
+        {/* notes peeking out */}
+        <rect x="58" y="30" width="96" height="44" rx="5" fill={MINT} transform="rotate(-8 106 52)" />
+        <rect x="64" y="38" width="96" height="44" rx="5" fill={SKY} transform="rotate(4 112 60)" />
+        {/* wallet */}
+        <rect x="40" y="54" width="132" height="86" rx="12" fill={CORAL} />
+        <path d="M40 74 H172" fill="none" strokeWidth="2" />
+        <rect x="132" y="82" width="50" height="32" rx="8" fill={BUTTER} />
+        <circle cx="148" cy="98" r="5" fill={WHITE} />
 
-/* Snap a Bill: phone photographing a restaurant bill (Thakali kitchen) */
-export function SnapIllustration() {
-  return (
-    <svg viewBox="0 0 360 160" role="img" aria-label="Phone photographing a paper bill">
-      {/* bill paper */}
-      <g transform="rotate(-4 150 80)">
-        <rect x="96" y="34" width="110" height="100" rx="6" fill="#fff" stroke={INK} strokeWidth="2.5" />
-        <text x="110" y="56" fontSize="10" fontWeight="800" fill={INK} fontFamily="Inter, sans-serif">THAKALI KITCHEN</text>
-        {[0, 1, 2, 3].map((i) => (
-          <g key={i}>
-            <rect x="110" y={68 + i * 15} width="52" height="5" rx="2.5" fill="#D8DCE8" />
-            <text x="176" y={74 + i * 15} fontSize="8" fontWeight="700" fill={INK} fontFamily="Inter, sans-serif">
-              {['रू180', 'रू95', 'रू60', 'रू335'][i]}
-            </text>
+        {/* receipt */}
+        <Receipt x={212} y={22} w={90} h={108} />
+        {[44, 62, 80].map((y, i) => (
+          <g key={y}>
+            <path d={`M224 ${y} H${258 - i * 6}`} fill="none" />
+            <path d={`M276 ${y} H290`} fill="none" />
           </g>
         ))}
-        <rect x="110" y="122" width="80" height="2" fill={INK} opacity="0.6" />
+        <path d="M224 98 H290" fill="none" strokeDasharray="2 6" />
+        <text x="238" y="120" fontSize="12" {...LABEL}>रू</text>
+        <path d="M262 116 H290" fill="none" strokeWidth="4" />
+
+        <Coin cx={318} cy={126} r={16} />
+        <Sparkle x={330} y={36} r={10} />
+        <circle cx="22" cy="40" r="5" fill={MINT} />
       </g>
-      {/* phone taking the snap */}
-      <g transform="rotate(10 268 78)">
-        <rect x="238" y="30" width="62" height="110" rx="12" fill={INK} />
-        <rect x="244" y="40" width="50" height="86" rx="6" fill={WASH} />
-        {/* viewfinder: mini bill + brackets */}
-        <rect x="252" y="56" width="34" height="24" rx="3" fill="#fff" stroke={RED} strokeWidth="2" />
-        <path d="M252 50 v-6 h6 M286 50 v-6 h-6 M252 86 v6 h6 M286 86 v6 h-6" stroke={RED} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        <circle cx="269" cy="112" r="8" fill={RED} />
-        <circle cx="269" cy="112" r="3" fill="#fff" />
-      </g>
-      {/* flash */}
-      <path d="M232 22 l10 -8 M236 34 l12 -2 M228 12 l4 -12" stroke={YELLOW} strokeWidth="3" strokeLinecap="round" />
-      <circle cx="66" cy="28" r="5" fill={TEAL} />
     </svg>
   )
 }
 
-/* Spending Insights: bar chart with Nepal-flag accent + momo/budget doodles */
+/* Snap a Bill: phone scanning a receipt, with a flash bolt */
+export function SnapIllustration() {
+  return (
+    <svg viewBox="0 0 360 160" role="img" aria-label="Phone scanning a paper bill">
+      <g {...OUTLINE}>
+        {/* bill */}
+        <g transform="rotate(-8 100 80)">
+          <Receipt x={56} y={24} w={90} h={104} />
+          <rect x="70" y="38" width="44" height="8" rx="4" fill={CORAL} />
+          {[62, 78, 94].map((y) => (
+            <g key={y}>
+              <path d={`M70 ${y} H104`} fill="none" />
+              <path d={`M118 ${y} H132`} fill="none" />
+            </g>
+          ))}
+          <path d="M70 110 H132" fill="none" strokeWidth="4" />
+        </g>
+
+        {/* phone */}
+        <g transform="rotate(6 222 82)">
+          <rect x="182" y="16" width="80" height="132" rx="14" fill={WHITE} />
+          <rect x="191" y="30" width="62" height="96" rx="6" fill={SKY} />
+          <rect x="206" y="52" width="32" height="44" rx="3" fill={WHITE} />
+          <path d="M212 64 H232 M212 74 H226 M212 84 H230" fill="none" strokeWidth="2" />
+          <path d="M200 46 v-8 h8 M244 46 v-8 h-8 M200 104 v8 h8 M244 104 v8 h-8" fill="none" />
+          <path d="M196 76 H248" stroke={CORAL} fill="none" />
+          <circle cx="222" cy="137" r="6" fill={CORAL} />
+        </g>
+
+        {/* flash bolt */}
+        <path d="M300 24 L284 62 H298 L288 96 L316 54 H302 L312 24 Z" fill={BUTTER} />
+        <Sparkle x={30} y={130} r={9} fill={MINT} />
+        <circle cx="330" cy="124" r="5" fill={CORAL} />
+      </g>
+    </svg>
+  )
+}
+
+/* Spending Insights: bar chart with trend arrow + category pie */
 export function InsightsIllustration() {
   return (
-    <svg viewBox="0 0 360 160" role="img" aria-label="Spending bar chart with a rising trend">
-      {/* chart card */}
-      <rect x="40" y="26" width="180" height="112" rx="10" fill="#fff" stroke={INK} strokeWidth="2.5" />
-      {/* bars — expenses by week */}
-      {[
-        { x: 62, h: 34, c: WASH },
-        { x: 90, h: 52, c: TEAL },
-        { x: 118, h: 40, c: WASH },
-        { x: 146, h: 68, c: RED },
-      ].map((b) => (
-        <rect key={b.x} x={b.x} y={122 - b.h} width="18" height={b.h} rx="4" fill={b.c} />
-      ))}
-      {/* trend arrow */}
-      <path d="M62 84 q52 -26 108 -52" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" strokeDasharray="1 8" />
-      <path d="M170 30 l10 -2 -4 10 z" fill={INK} />
-      {/* axis label */}
-      <text x="52" y="46" fontSize="10" fontWeight="700" fill={INK} fontFamily="Inter, sans-serif">
-        साप्ताहिक खर्च
-      </text>
-      {/* Nepal flag badge */}
-      <g transform="translate(258 52)">
-        <rect x="0" y="0" width="66" height="66" rx="12" fill={WASH} />
-        {/* double-pennon flag, correct geometry */}
-        <g transform="translate(14 6) scale(1.15)">
-          <line x1="6" y1="0" x2="6" y2="46" stroke={INK} strokeWidth="3" strokeLinecap="round" />
-          <path
-            d="M6 3 L40 19 L18 19 L46 40 L6 40 Z"
-            fill={RED}
-            stroke="#1E4EA0"
-            strokeWidth="3"
-            strokeLinejoin="round"
-          />
-          {/* moon (upper pennon) */}
-          <circle cx="17" cy="13" r="4" fill="#fff" />
-          <circle cx="19" cy="12" r="3.2" fill={RED} />
-          {/* sun (lower pennon) */}
-          <circle cx="20" cy="32" r="3.4" fill="#fff" />
-        </g>
-        <text x="12" y="62" fontSize="8" fontWeight="700" fill={INK} fontFamily="Inter, sans-serif">FY 2082</text>
+    <svg viewBox="0 0 360 160" role="img" aria-label="Spending bar chart and category pie chart">
+      <g {...OUTLINE}>
+        {/* chart card */}
+        <rect x="30" y="18" width="190" height="126" rx="12" fill={WHITE} />
+        {[
+          { x: 52, h: 30, c: MINT },
+          { x: 92, h: 50, c: BUTTER },
+          { x: 132, h: 40, c: SKY },
+          { x: 172, h: 72, c: CORAL },
+        ].map((b) => (
+          <rect key={b.x} x={b.x} y={126 - b.h} width="24" height={b.h} rx="4" fill={b.c} />
+        ))}
+        <path d="M44 126 H206" fill="none" />
+        {/* trend */}
+        <path d="M58 82 L100 62 L140 72 L182 36" fill="none" />
+        <path d="M172 34 L184 34 L184 46" fill="none" />
+
+        {/* pie */}
+        <circle cx="286" cy="82" r="44" fill={BUTTER} />
+        <path d="M286 82 L286 38 A44 44 0 0 1 327.3 97 Z" fill={CORAL} />
+        <path d="M286 82 L327.3 97 A44 44 0 0 1 260.8 118 Z" fill={MINT} />
+        <circle cx="286" cy="82" r="14" fill={WHITE} />
+
+        <Sparkle x={334} y={26} r={10} fill={SKY} />
+        <circle cx="244" cy="140" r="5" fill={CORAL} />
       </g>
-      <circle cx="330" cy="126" r="5" fill={YELLOW} />
     </svg>
   )
 }
 
-/* Ask Fin Buddy: chat bubbles grounded in a document, Nepali greeting */
+/* Ask Fin Buddy: assistant and user chat bubbles + a bill document */
 export function ChatIllustration() {
   return (
-    <svg viewBox="0 0 360 160" role="img" aria-label="Chat assistant answering from a bill document">
-      {/* document */}
-      <rect x="34" y="36" width="96" height="104" rx="8" fill="#fff" stroke={INK} strokeWidth="2.5" />
-      <rect x="34" y="36" width="96" height="16" rx="8" fill={TEAL} />
-      <rect x="34" y="44" width="96" height="8" fill={TEAL} />
-      {[0, 1, 2].map((i) => (
-        <g key={i}>
-          <rect x="46" y={64 + i * 16} width={64 - i * 12} height="5" rx="2.5" fill="#D8DCE8" />
-          <circle cx="46" cy={80 + i * 16} r="0" />
-        </g>
-      ))}
-      <rect x="46" y="118" width="40" height="12" rx="6" fill={WASH} />
-      <text x="52" y="127" fontSize="7.5" fontWeight="700" fill={INK} fontFamily="Inter, sans-serif">bill.pdf</text>
-      {/* assistant bubble */}
-      <rect x="150" y="40" width="150" height="44" rx="12" fill={RED} />
-      <path d="M150 58 l-10 8 10 6 z" fill={RED} />
-      <text x="164" y="60" fontSize="10" fontWeight="700" fill="#fff" fontFamily="Inter, sans-serif">
-        नमस्ते! तपाईंको खर्च
-      </text>
-      <rect x="164" y="66" width="104" height="6" rx="3" fill="#F0909B" />
-      {/* user bubble */}
-      <rect x="196" y="100" width="128" height="40" rx="12" fill={INK} />
-      <path d="M324 116 l10 -6 -10 -6 z" fill={INK} />
-      <rect x="210" y="112" width="86" height="6" rx="3" fill="#4A4A52" />
-      <rect x="210" y="124" width="56" height="6" rx="3" fill="#4A4A52" />
-      {/* citation chip */}
-      <rect x="150" y="116" width="40" height="16" rx="8" fill={WASH} stroke={RED} strokeWidth="1.5" />
-      <text x="156" y="127" fontSize="7.5" fontWeight="700" fill={RED} fontFamily="Inter, sans-serif">src · 1</text>
-      <circle cx="342" cy="30" r="5" fill={YELLOW} />
-      <path d="M140 132 q6 -10 12 0" stroke={TEAL} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    <svg viewBox="0 0 360 160" role="img" aria-label="Chat assistant answering questions about a bill">
+      <g {...OUTLINE}>
+        {/* assistant bubble */}
+        <path
+          d="M54 22 H186 a14 14 0 0 1 14 14 V68 a14 14 0 0 1 -14 14 H82 L62 98 L66 82 H54 a14 14 0 0 1 -14 -14 V36 a14 14 0 0 1 14 -14 Z"
+          fill={CORAL}
+        />
+        <rect x="56" y="38" width="110" height="9" rx="4.5" fill={WHITE} />
+        <rect x="56" y="56" width="72" height="9" rx="4.5" fill={WHITE} />
+
+        {/* user bubble */}
+        <path
+          d="M184 92 H296 a14 14 0 0 1 14 14 V122 a14 14 0 0 1 -14 14 H294 L298 152 L276 136 H184 a14 14 0 0 1 -14 -14 V106 a14 14 0 0 1 14 -14 Z"
+          fill={MINT}
+        />
+        {[214, 240, 266].map((cx) => (
+          <circle key={cx} cx={cx} cy="114" r="5" fill={LINE} stroke="none" />
+        ))}
+
+        {/* bill document */}
+        <path d="M100 98 H134 L148 112 V152 H100 Z" fill={SKY} />
+        <path d="M134 98 V112 H148" fill="none" />
+        <path d="M110 124 H136 M110 138 H128" fill="none" strokeWidth="2.5" />
+
+        <Coin cx={316} cy={46} r={18} />
+        <Sparkle x={240} y={40} r={10} />
+        <circle cx="26" cy="126" r="5" fill={BUTTER} />
+      </g>
     </svg>
   )
 }
