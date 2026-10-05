@@ -1,14 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { listExpenses, type ExpenseOut } from './api'
-import ExpenseForm from './ExpenseForm'
-
-function formatNpr(amount: string) {
-  const n = Number(amount)
-  return Number.isFinite(n)
-    ? `Rs. ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : `Rs. ${amount}`
-}
+import { listExpenses, type ExpenseOut } from '../api/expenses'
+import ExpenseForm from '../components/ExpenseForm'
+import { formatNpr } from '../lib/dates'
 
 function fmtAd(iso: string) {
   const d = new Date(iso)

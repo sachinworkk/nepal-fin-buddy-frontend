@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { createExpense, CATEGORIES, type Category, type ExpenseOut } from './api'
+import { CATEGORIES, createExpense, type Category, type ExpenseOut } from '../api/expenses'
+import DateInput, { type DateValue } from './DateInput'
 
 const emptyForm = {
   amount: '',
@@ -8,12 +9,13 @@ const emptyForm = {
   merchant: '',
   note: '',
   payment_method: '',
-  expense_date: new Date().toISOString().slice(0, 10),
 }
+const today = (): DateValue => ({ ad: new Date().toISOString().slice(0, 10) })
 
 export default function ExpenseForm({ onDone }: { onDone: () => void }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState(emptyForm)
+  const [date, setDate] = useState<DateValue>(today)
 
   const mutation = useMutation({
     mutationFn: (body: typeof emptyForm) =>
@@ -23,7 +25,8 @@ export default function ExpenseForm({ onDone }: { onDone: () => void }) {
         merchant: body.merchant || undefined,
         note: body.note || undefined,
         payment_method: body.payment_method || undefined,
-        expense_date: body.expense_date,
+        expense_date: date.ad,
+        expense_date_bs: date.bs,
       }),
     onSuccess: (created: ExpenseOut) => {
       queryClient.setQueryData<ExpenseOut[]>(['expenses'], (prev) =>
@@ -76,16 +79,7 @@ export default function ExpenseForm({ onDone }: { onDone: () => void }) {
             onChange={set('merchant')}
           />
         </label>
-        <label className="snap-field">
-          <span>Date</span>
-          <input
-            className="input"
-            type="date"
-            required
-            value={form.expense_date}
-            onChange={set('expense_date')}
-          />
-        </label>
+        <DateInput label="Date" required value={date} onChange={setDate} />
         <label className="snap-field">
           <span>Payment method</span>
           <input

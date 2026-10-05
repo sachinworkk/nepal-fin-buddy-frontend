@@ -1,13 +1,6 @@
 import { useRef, useState } from 'react'
-import {
-  CATEGORIES,
-  confirmBill,
-  updateBill,
-  uploadBill,
-  type BillItem,
-  type BillOut,
-  type Category,
-} from './api'
+import { confirmBill, updateBill, uploadBill, type BillItem, type BillOut } from '../api/bills'
+import { CATEGORIES, type Category } from '../api/expenses'
 
 type Stage = 'upload' | 'editing' | 'confirmed'
 

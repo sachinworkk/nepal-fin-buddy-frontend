@@ -4,7 +4,7 @@ import {
   HeroIllustration,
   InsightsIllustration,
   SnapIllustration,
-} from './illustrations'
+} from '../components/illustrations'
 
 export default function Landing() {
   return (
@@ -24,8 +24,8 @@ export default function Landing() {
             <a href="/login" className="btn btn-accent btn-lg">
               Log in
             </a>
-            <a href="/chat" className="btn btn-ghost btn-lg">
-              Try the chat
+            <a href="/register" className="btn btn-ghost btn-lg">
+              Create account
             </a>
           </div>
         </div>
