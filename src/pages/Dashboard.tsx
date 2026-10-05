@@ -1,0 +1,115 @@
+import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
+import { getByCategory, getMonthly, getSummary } from '../api/stats'
+import MonthlyChart from '../components/MonthlyChart'
+import { formatNpr } from '../lib/dates'
+
+const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
+
+export default function Dashboard() {
+  const summary = useQuery({ queryKey: ['stats', 'summary'], queryFn: getSummary })
+  const monthly = useQuery({ queryKey: ['stats', 'monthly', 6], queryFn: () => getMonthly(6) })
+  const current = monthly.data?.[monthly.data.length - 1]
+  const cats = useQuery({
+    queryKey: ['stats', 'by-category', current?.start, current?.end],
+    queryFn: () => getByCategory(current!.start, current!.end),
+    enabled: !!current,
+  })
+
+  const error = summary.error ?? monthly.error ?? cats.error
+  if (error) return <p className="form-error">{errMsg(error)}</p>
+  if (!summary.data || !monthly.data) return <p className="page-body">Loading…</p>
+
+  const s = summary.data
+  const hasAny = monthly.data.some((m) => Number(m.total) > 0)
+  if (!hasAny) {
+    return (
+      <>
+        <h2 className="page-title">Dashboard</h2>
+        <div className="expenses-empty">
+          <strong>No spending recorded yet</strong>
+          <span>Snap a bill or add an expense and your overview will show up here.</span>
+          <span className="dash-empty-links">
+            <Link className="btn btn-accent" to="/snap">Snap a bill</Link>
+            <Link className="btn" to="/expenses">Add expense</Link>
+          </span>
+        </div>
+      </>
+    )
+  }
+
+  const thisM = Number(s.this_month)
+  const lastM = Number(s.last_month)
+  const diff = thisM - lastM
+  const pct = lastM > 0 ? (diff / lastM) * 100 : null
+  const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→'
+  const topCats = cats.data ?? []
+
+  return (
+    <>
+      <h2 className="page-title">Dashboard</h2>
+      <p className="page-sub">Your spending in Bikram Sambat months.</p>
+
+      <div className="dash-kpis">
+        <div className="dash-card">
+          <span className="dash-label">{s.month_label}</span>
+          <strong className="dash-big">{formatNpr(thisM)}</strong>
+          <span className="dash-muted">spent this month</span>
+        </div>
+        <div className="dash-card">
+          <span className="dash-label">Compared with last month</span>
+          <strong className="dash-big">
+            <span aria-hidden="true">{arrow}</span> {formatNpr(Math.abs(diff))}
+          </strong>
+          <span className="dash-muted">
+            {diff === 0 ? 'No change' : diff > 0 ? 'more' : 'less'}
+            {pct !== null && diff !== 0 ? ` (${Math.abs(pct).toFixed(0)}%)` : ''} than{' '}
+            {formatNpr(lastM)} last month
+          </span>
+        </div>
+      </div>
+
+      <div className="dash-card">
+        <h3 className="dash-h">Last 6 months</h3>
+        <MonthlyChart months={monthly.data} />
+      </div>
+
+      <div className="dash-cols">
+        <div className="dash-card">
+          <h3 className="dash-h">By category · {s.month_label}</h3>
+          {cats.isLoading && <p className="dash-muted">Loading…</p>}
+          {cats.data && topCats.length === 0 && <p className="dash-muted">Nothing spent this month yet.</p>}
+          <ul className="cat-list">
+            {topCats.map((c) => (
+              <li key={c.category}>
+                <div className="cat-row">
+                  <span>{cap(c.category)}</span>
+                  <span className="cat-amt">
+                    {formatNpr(c.total)} <em>{Math.round(c.share * 100)}% · {c.count}×</em>
+                  </span>
+                </div>
+                <div className="cat-track" aria-hidden="true">
+                  <div className="cat-fill" style={{ width: `${Math.max(c.share * 100, 1)}%` }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="dash-card">
+          <h3 className="dash-h">Top merchants · {s.month_label}</h3>
+          {s.top_merchants.length === 0 && <p className="dash-muted">No merchants recorded this month.</p>}
+          <ol className="merch-list">
+            {s.top_merchants.map((m) => (
+              <li key={m.merchant}>
+                <span>{m.merchant}</span>
+                <strong>{formatNpr(m.total)}</strong>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </>
+  )
+}

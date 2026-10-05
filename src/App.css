@@ -1198,3 +1198,277 @@ main.wide {
     padding: var(--sp-4);
   }
 }
+
+/* ── Dashboard ─────────────────────────────────────────── */
+.dash-kpis,
+.dash-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+
+.dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  padding: var(--sp-4) var(--sp-5);
+}
+
+.dash-kpis + .dash-card {
+  margin-bottom: var(--sp-4);
+}
+
+.dash-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+
+.dash-big {
+  font-size: var(--text-2xl);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.dash-muted {
+  color: var(--text-2);
+  font-size: var(--text-sm);
+}
+
+.dash-h {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--text-lg);
+}
+
+.dash-empty-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.chart-svg {
+  max-width: 560px;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart-base {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+.chart-axis {
+  font-size: 13px;
+  fill: var(--text-3);
+}
+
+.chart-year {
+  font-weight: 600;
+}
+
+.chart-value {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--text-1);
+}
+
+.bar-past {
+  fill: var(--text-3);
+}
+
+.bar-current {
+  fill: var(--accent);
+}
+
+.chart-bar {
+  outline: none;
+}
+
+.chart-bar:hover path,
+.chart-bar:focus-visible path {
+  opacity: 0.75;
+}
+
+.chart-table {
+  margin-top: var(--sp-2);
+  font-size: var(--text-sm);
+  color: var(--text-2);
+}
+
+.chart-table summary {
+  cursor: pointer;
+}
+
+.chart-table table {
+  border-collapse: collapse;
+  margin-top: var(--sp-2);
+  width: 100%;
+  max-width: 360px;
+}
+
+.chart-table th,
+.chart-table td {
+  text-align: left;
+  padding: var(--sp-1) var(--sp-2);
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+.cat-list,
+.merch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.cat-row,
+.merch-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-size: var(--text-sm);
+}
+
+.cat-amt,
+.merch-list strong {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.cat-amt em {
+  font-style: normal;
+  color: var(--text-3);
+  margin-left: var(--sp-1);
+}
+
+.merch-list span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cat-track {
+  height: 6px;
+  margin-top: var(--sp-1);
+  background: var(--border);
+  border-radius: var(--r-full);
+}
+
+.cat-fill {
+  height: 100%;
+  background: var(--ink);
+  border-radius: var(--r-full);
+}
+
+@media (max-width: 640px) {
+  .dash-kpis,
+  .dash-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dash-card {
+    padding: var(--sp-4);
+  }
+}
+
+/* ── Expenses filters / actions / pager ───────────────── */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-3);
+  align-items: start;
+  margin: var(--sp-4) 0;
+}
+
+.filters-clear {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.expenses-head,
+.expenses-row {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.expenses-date {
+  display: flex;
+  flex-direction: column;
+}
+
+.expenses-date small {
+  color: var(--text-3);
+  font-size: var(--text-xs);
+}
+
+.expenses-actions {
+  display: flex;
+  gap: var(--sp-1);
+  justify-content: flex-end;
+}
+
+.expenses-actions .btn {
+  padding: var(--sp-1) var(--sp-2);
+  font-size: var(--text-sm);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+.pager-btns {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+@media (max-width: 900px) {
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .expenses-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'merchant amount'
+      'meta amount'
+      'actions actions';
+  }
+
+  .expenses-actions {
+    grid-area: actions;
+    justify-content: flex-start;
+  }
+
+  .expenses-date {
+    flex-direction: row;
+    gap: var(--sp-2);
+  }
+}

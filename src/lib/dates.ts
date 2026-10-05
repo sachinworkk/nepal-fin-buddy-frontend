@@ -51,3 +51,22 @@ export function useBsConvert(input: BsConvertInput) {
     isFetching: !settled || query.isFetching,
   }
 }
+
+export type DateMode = 'ad' | 'bs'
+const MODE_KEY = 'dateInputMode'
+
+export function loadDateMode(): DateMode {
+  try {
+    return localStorage.getItem(MODE_KEY) === 'bs' ? 'bs' : 'ad'
+  } catch {
+    return 'ad'
+  }
+}
+
+export function saveDateMode(m: DateMode) {
+  try {
+    localStorage.setItem(MODE_KEY, m)
+  } catch {
+    /* storage unavailable */
+  }
+}
