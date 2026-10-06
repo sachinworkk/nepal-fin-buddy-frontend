@@ -50,6 +50,7 @@ const LINKS: { to: string; label: string; end?: boolean }[] = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/snap', label: 'Snap' },
   { to: '/expenses', label: 'Expenses' },
+  { to: '/ird-lottery', label: 'IRD lottery' },
   { to: '/chat', label: 'Chat' },
   { to: '/settings', label: 'Settings' },
 ]

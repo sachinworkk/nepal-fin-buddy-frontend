@@ -2,9 +2,11 @@ export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 export class ApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  body?: unknown
+  constructor(status: number, message: string, body?: unknown) {
     super(message)
     this.status = status
+    this.body = body
   }
 }
 
@@ -45,7 +47,7 @@ async function toError(res: Response): Promise<ApiError> {
   } catch {
     /* non-JSON error body */
   }
-  return new ApiError(res.status, parseDetail(body, res.statusText || `Error ${res.status}`))
+  return new ApiError(res.status, parseDetail(body, res.statusText || `Error ${res.status}`), body)
 }
 
 async function raw(path: string, init: RequestInit = {}): Promise<Response> {
