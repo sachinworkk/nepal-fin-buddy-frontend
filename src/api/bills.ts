@@ -1,4 +1,4 @@
-import { patch, post, uploadFile } from './client'
+import { get, patch, post, uploadFile } from './client'
 import type { Category } from './expenses'
 
 export interface BillItem {
@@ -27,6 +27,8 @@ export interface BillOut {
   created_at: string
   items: BillItem[]
 }
+
+export const listBills = () => get<BillOut[]>('/bills')
 
 export const uploadBill = (file: File, onProgress?: (pct: number) => void) =>
   uploadFile<BillOut>('/bills/upload', file, onProgress)

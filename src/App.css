@@ -1472,3 +1472,348 @@ main.wide {
     gap: var(--sp-2);
   }
 }
+
+/* ── IRD lottery ───────────────────────────────────────── */
+.lot-billpick-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.lot-billpick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.lot-bill-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+
+.lot-bill-row:hover {
+  border-color: var(--border-strong);
+}
+
+.lot-bill-row.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.lot-bill-row input {
+  accent-color: var(--accent);
+}
+
+.lot-bill-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.lot-bill-main strong,
+.lot-bill-main small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lot-bill-main small {
+  color: var(--text-2);
+}
+
+.lot-bill-row .lot-amt {
+  flex: none;
+}
+
+.lot-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.lot-rows-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1.1fr) auto;
+  gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+}
+
+.lot-row-wrap {
+  border-bottom: 1px solid var(--border);
+}
+
+.lot-row-wrap:last-child {
+  border-bottom: none;
+}
+
+.lot-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1.1fr) auto;
+  gap: var(--sp-3);
+  align-items: center;
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-1);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lot-row:hover {
+  background: var(--bg);
+}
+
+.lot-row.open {
+  background: var(--bg);
+}
+
+.lot-billno {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.lot-billno strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lot-chip {
+  flex: none;
+  font-style: normal;
+  font-size: var(--text-xs);
+  color: var(--text-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-full);
+  padding: 0 var(--sp-2);
+  line-height: 1.6;
+}
+
+.lot-date {
+  color: var(--text-2);
+}
+
+.lot-amt {
+  text-align: right;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.lot-coupon {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.lot-detail {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg);
+  font-size: var(--text-sm);
+}
+
+.lot-detail dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-3) var(--sp-4);
+  margin: 0;
+}
+
+.lot-detail dt {
+  font-size: var(--text-xs);
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.lot-detail dd {
+  margin: 0;
+  font-weight: 550;
+  word-break: break-word;
+}
+
+.lot-detail-err dd {
+  color: var(--danger);
+}
+
+.lot-err-list {
+  margin: 0;
+  padding-left: var(--sp-4);
+}
+
+.lot-field-err {
+  display: block;
+  color: var(--danger);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.lot-banner-info {
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-md);
+  color: var(--text-1);
+  font-size: var(--text-sm);
+}
+
+.lot-banner-err {
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--danger);
+  border-radius: var(--r-md);
+}
+
+.lot-bill-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  margin: 0;
+}
+
+.lot-bill-summary span {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--text-3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lot-bill-summary strong {
+  font-size: var(--text-sm);
+  font-weight: 650;
+  word-break: break-word;
+}
+
+.lot-coupon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: center;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6) var(--sp-5);
+  margin-top: var(--sp-4);
+}
+
+.lot-coupon h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.lot-coupon-label {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--text-xs);
+  color: var(--text-3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lot-coupon-code {
+  margin: 0;
+  font-size: clamp(1.7rem, 6vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.lot-coupon-meta {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--text-sm);
+}
+
+.lot-coupon .settings-actions {
+  justify-content: center;
+  margin-top: var(--sp-2);
+}
+
+.lot-coupon-fail {
+  border-color: var(--danger);
+}
+
+.badge-fail {
+  background: #fdecec;
+  color: var(--danger);
+}
+
+.turnstile-box {
+  margin: var(--sp-2) 0;
+  min-height: 65px;
+}
+
+.turnstile-note {
+  margin: 0;
+  color: var(--text-3);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 640px) {
+  .lot-rows-head {
+    display: none;
+  }
+
+  .lot-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'bill amt'
+      'coupon status'
+      'date date';
+    row-gap: var(--sp-1);
+  }
+
+  .lot-billno {
+    grid-area: bill;
+  }
+
+  .lot-date {
+    grid-area: date;
+    font-size: var(--text-xs);
+  }
+
+  .lot-amt {
+    grid-area: amt;
+    align-self: center;
+  }
+
+  .lot-coupon {
+    grid-area: coupon;
+  }
+
+  .lot-status {
+    grid-area: status;
+    text-align: right;
+  }
+}
