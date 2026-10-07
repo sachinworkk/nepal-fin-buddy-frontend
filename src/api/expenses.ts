@@ -6,6 +6,15 @@ export const CATEGORIES = [
 ] as const
 export type Category = (typeof CATEGORIES)[number]
 
+export const PAYMENT_METHODS = ['cash', 'card', 'qr', 'cheque'] as const
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: 'Cash',
+  card: 'Card',
+  qr: 'QR',
+  cheque: 'Cheque',
+}
+
 export interface ExpenseOut {
   id: string
   amount: string
@@ -26,7 +35,7 @@ export interface ExpenseIn {
   category: Category
   merchant?: string
   note?: string
-  payment_method?: string
+  payment_method?: PaymentMethod | null
   expense_date?: string
   expense_date_bs?: string
 }
@@ -37,6 +46,7 @@ export type ExpenseUpdate = Partial<Omit<ExpenseIn, 'category'>> & { category?: 
 
 export interface ExpenseFilters {
   category?: string
+  payment_method?: string
   q?: string
   date_from?: string
   date_to?: string

@@ -7,8 +7,10 @@ import {
   type Category,
   type ExpenseIn,
   type ExpenseOut,
+  type PaymentMethod,
 } from '../api/expenses'
 import { loadDateMode } from '../lib/dates'
+import { usePaymentMethods } from '../lib/usePaymentMethods'
 import DateInput, { type DateValue } from './DateInput'
 
 const emptyForm = {
@@ -16,7 +18,7 @@ const emptyForm = {
   category: 'other' as Category,
   merchant: '',
   note: '',
-  payment_method: '',
+  payment_method: '' as PaymentMethod | '',
 }
 const today = (): DateValue => ({ ad: new Date().toISOString().slice(0, 10) })
 
@@ -28,6 +30,7 @@ function initialDate(e?: ExpenseOut): DateValue {
 /** Create form, or edit form when `expense` is given. */
 export default function ExpenseForm({ onDone, expense }: { onDone: () => void; expense?: ExpenseOut }) {
   const queryClient = useQueryClient()
+  const { options: paymentOptions } = usePaymentMethods()
   const [form, setForm] = useState(
     expense
       ? {
@@ -35,7 +38,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
           category: expense.category as Category,
           merchant: expense.merchant ?? '',
           note: expense.note ?? '',
-          payment_method: expense.payment_method ?? '',
+          payment_method: (expense.payment_method ?? '') as PaymentMethod | '',
         }
       : emptyForm,
   )
@@ -58,7 +61,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
             // Allow clearing optional text fields when editing.
             merchant: body.merchant,
             note: body.note,
-            payment_method: body.payment_method,
+            payment_method: body.payment_method || null,
           })
         : createExpense(payload)
     },
@@ -120,12 +123,14 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
         <DateInput label="Date" required value={date} onChange={setDate} />
         <label className="field">
           <span>Payment method</span>
-          <input
-            className="input"
-            placeholder="e.g. cash, eSewa, card"
-            value={form.payment_method}
-            onChange={set('payment_method')}
-          />
+          <select className="input" value={form.payment_method} onChange={set('payment_method')}>
+            <option value="">Not specified</option>
+            {paymentOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="field">
           <span>Note (optional)</span>

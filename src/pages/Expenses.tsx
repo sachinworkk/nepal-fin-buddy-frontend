@@ -6,6 +6,7 @@ import { CATEGORIES, deleteExpense, listExpenses, type ExpenseOut } from '../api
 import DateInput, { type DateValue } from '../components/DateInput'
 import ExpenseForm from '../components/ExpenseForm'
 import { formatNpr, useBsConvert, useDebounced } from '../lib/dates'
+import { usePaymentMethods } from '../lib/usePaymentMethods'
 
 const PAGE_SIZE = 20
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -33,6 +34,8 @@ export default function Expenses() {
   const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
   const category = params.get('category') ?? ''
+  const paymentMethod = params.get('payment_method') ?? ''
+  const { options: paymentOptions, labelOf: paymentLabel } = usePaymentMethods()
   const page = Math.max(1, Number(params.get('page')) || 1)
 
   // `?new=1` (e.g. from the dashboard) opens the add form straight away.
@@ -65,7 +68,7 @@ export default function Expenses() {
       }, { replace: true })
   }
 
-  const filters = { category, q, date_from: dateFrom, date_to: dateTo }
+  const filters = { category, payment_method: paymentMethod, q, date_from: dateFrom, date_to: dateTo }
   const { data, isLoading, error } = useQuery({
     queryKey: ['expenses', filters, page],
     queryFn: () => listExpenses({ ...filters, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
@@ -87,7 +90,7 @@ export default function Expenses() {
   const expenses = data?.items ?? []
   const total = data?.total ?? 0
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const filtered = !!(category || q || dateFrom || dateTo)
+  const filtered = !!(category || paymentMethod || q || dateFrom || dateTo)
   const firstIdx = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
   const lastIdx = Math.min(page * PAGE_SIZE, total)
 
@@ -116,6 +119,17 @@ export default function Expenses() {
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c[0].toUpperCase() + c.slice(1)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          <span>Payment method</span>
+          <select className="input" value={paymentMethod} onChange={(e) => setParam('payment_method', e.target.value)}>
+            <option value="">All methods</option>
+            {paymentOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
           </select>
@@ -196,6 +210,7 @@ export default function Expenses() {
                 <strong title={e.merchant || undefined}>{e.merchant || 'Untitled'}</strong>
                 <span className="expenses-tags">
                   <em className="badge badge-muted">{SOURCE_LABEL[e.source]}</em>
+                  {e.payment_method && <em className="badge badge-muted">{paymentLabel(e.payment_method)}</em>}
                   {e.bill_id && enteredBillIds.has(e.bill_id) && (
                     <em className="badge badge-accent">Lottery entered</em>
                   )}

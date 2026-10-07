@@ -1002,7 +1002,7 @@ button.list-row:hover {
 
 .filters {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--sp-3);
   align-items: start;
   margin-bottom: var(--sp-4);
