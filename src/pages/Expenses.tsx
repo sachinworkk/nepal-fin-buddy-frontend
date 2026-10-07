@@ -84,6 +84,7 @@ export default function Expenses() {
       setConfirmId(null)
       void qc.invalidateQueries({ queryKey: ['expenses'] })
       void qc.invalidateQueries({ queryKey: ['stats'] })
+      void qc.invalidateQueries({ queryKey: ['bills'] })
     },
   })
 
@@ -211,6 +212,11 @@ export default function Expenses() {
                 <span className="expenses-tags">
                   <em className="badge badge-muted">{SOURCE_LABEL[e.source]}</em>
                   {e.payment_method && <em className="badge badge-muted">{paymentLabel(e.payment_method)}</em>}
+                  {e.bill?.bill_number && (
+                    <em className="badge badge-muted" title={e.bill.vendor_pan ? `PAN ${e.bill.vendor_pan}` : undefined}>
+                      Bill #{e.bill.bill_number}
+                    </em>
+                  )}
                   {e.bill_id && enteredBillIds.has(e.bill_id) && (
                     <em className="badge badge-accent">Lottery entered</em>
                   )}

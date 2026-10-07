@@ -387,8 +387,51 @@ main.main-wide {
 }
 
 .form-grid + .form-error,
-.form-grid + .lot-err-list {
+.form-grid + .lot-err-list,
+.bill-details + .form-error,
+.bill-details-hint + .form-error {
   margin-top: var(--sp-4);
+}
+
+/* Optional bill fields under the expense form */
+.bill-details {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+
+.bill-details summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.bill-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.bill-details summary::before {
+  content: '▸';
+  color: var(--text-3);
+  transition: transform 0.15s;
+}
+
+.bill-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.bill-details[open] summary {
+  margin-bottom: var(--sp-4);
+}
+
+.bill-details-hint {
+  display: block;
+  margin: var(--sp-3) 0 0;
 }
 
 /* Card */
