@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Nepal Fin Buddy – IRD prize prefill",
-  "version": "0.1.0",
-  "description": "Fills the bill and customer fields on prize.ird.gov.np from values handed off by Nepal Fin Buddy. You still complete the security check and submit yourself.",
+  "name": "Nepal Fin Buddy",
+  "version": "0.2.0",
+  "description": "Companion for Nepal Fin Buddy: prefills the IRD prize portal today, with room for more helpers and alerts.",
   "content_scripts": [
     {
       "matches": ["https://prize.ird.gov.np/*"],
-      "js": ["content.js"],
+      "js": ["src/core.js", "src/features/ird-prize-prefill.js", "src/main.js"],
       "run_at": "document_idle"
     }
   ]

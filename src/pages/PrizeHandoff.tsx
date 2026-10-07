@@ -61,14 +61,17 @@ function portalUrlWithPrefill(h: PrizeHandoffOut): string {
   if (isMobileWeb()) return h.portal_url
   const f = h.fields
   const json = JSON.stringify({
-    bill_number: f.bill_number,
-    seller_pan_no: f.seller_pan_no,
-    bill_date: f.bill_date,
-    billed_total_amount: f.billed_total_amount,
-    payment_method: f.payment_method,
-    name: f.name,
-    address: f.address,
-    mobile_number: f.mobile_number,
+    feature: 'ird-prize-prefill',
+    data: {
+      bill_number: f.bill_number,
+      seller_pan_no: f.seller_pan_no,
+      bill_date: f.bill_date,
+      billed_total_amount: f.billed_total_amount,
+      payment_method: f.payment_method,
+      name: f.name,
+      address: f.address,
+      mobile_number: f.mobile_number,
+    },
   })
   const bytes = new TextEncoder().encode(json)
   let bin = ''
