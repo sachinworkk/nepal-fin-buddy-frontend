@@ -1,11 +1,13 @@
-import { ApiError, get, post } from './client'
+import { ApiError, get, patch, post } from './client'
 
 export interface PrizeConfig {
   turnstile_sitekey: string
   payment_methods: string[]
+  /** "handoff": the user submits on prize.ird.gov.np; "direct": we submit (test/mock mode). */
+  submission_mode: 'direct' | 'handoff'
 }
 
-export type PrizeEnrollmentStatus = 'submitted' | 'failed'
+export type PrizeEnrollmentStatus = 'handed_off' | 'submitted' | 'failed'
 
 export interface PrizeEnrollmentOut {
   id: string
@@ -39,12 +41,51 @@ export interface PrizeEnrollmentIn {
   form_started_at: number
 }
 
+export interface PrizeEligibleBill {
+  bill_id: string
+  vendor_name: string | null
+  seller_pan_no: string
+  bill_number: string
+  bill_date: string
+  billed_total_amount: string
+  fiscal_year_code: string | null
+  fiscal_year_status: string | null
+  days_left: number | null
+}
+
+export interface PrizeHandoffIn {
+  bill_id: string
+  name: string
+  address: string
+  mobile_number: string
+  company_website?: string | null
+}
+
+export interface PrizeHandoffFields {
+  bill_number: string
+  seller_pan_no: string
+  bill_date: string
+  billed_total_amount: string
+  payment_method: string
+  name: string
+  address: string
+  mobile_number: string
+  company_website: string | null
+}
+
+export interface PrizeHandoffOut {
+  enrollment_id: string
+  fields: PrizeHandoffFields
+  portal_url: string
+}
+
 export const getPrizeConfig = () => get<PrizeConfig>('/prize/config')
 
 export const createPrizeEnrollment = (body: PrizeEnrollmentIn) =>
   post<PrizeEnrollmentOut>('/prize/enrollments', body)
 
-export const listPrizeEnrollments = () => get<PrizeEnrollmentOut[]>('/prize/enrollments')
+export const listPrizeEnrollments = (billId?: string) =>
+  get<PrizeEnrollmentOut[]>(billId ? `/prize/enrollments?bill_id=${encodeURIComponent(billId)}` : '/prize/enrollments')
 
 export const getPrizeEnrollment = (id: string) => get<PrizeEnrollmentOut>(`/prize/enrollments/${id}`)
 
@@ -70,3 +111,15 @@ export function parsePrizeFieldErrors(err: unknown): PrizeFieldErrors {
   }
   return { fields, message }
 }
+
+export const listEligiblePrizeBills = () => get<PrizeEligibleBill[]>('/prize/eligible')
+
+/** Idempotent per bill: calling again for a handed-off bill returns the same enrollment. */
+export const createPrizeHandoff = (body: PrizeHandoffIn) =>
+  post<PrizeHandoffOut>('/prize/enrollments/handoff', body)
+
+export const markPrizeSubmitted = (enrollmentId: string, prizeCouponNumber?: string) =>
+  patch<PrizeEnrollmentOut>(`/prize/enrollments/${enrollmentId}`, {
+    status: 'submitted',
+    ...(prizeCouponNumber ? { prize_coupon_number: prizeCouponNumber } : {}),
+  })

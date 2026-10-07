@@ -12,7 +12,8 @@ import {
   type PrizeEnrollmentOut,
 } from '../api/prize'
 import Turnstile from '../components/Turnstile'
-import { formatNpr } from '../lib/dates'
+import PrizeHandoff from './PrizeHandoff'
+import { fmtAd, formatNpr } from '../lib/dates'
 import { validateAddress, validateMobile, validateName } from '../lib/prizeRules'
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -29,14 +30,6 @@ type Stage = 'source' | 'form' | 'done'
 interface Banner {
   kind: 'error' | 'info'
   text: string
-}
-
-function fmtAd(iso: string | null | undefined): string {
-  if (!iso) return '—'
-  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? `${iso}T00:00:00` : iso)
-  return Number.isNaN(d.getTime())
-    ? iso
-    : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function BannerBox({ banner }: { banner: Banner }) {
@@ -120,7 +113,7 @@ function ResultCard({
   )
 }
 
-export default function Lottery() {
+function DirectLottery() {
   const qc = useQueryClient()
   const [view, setView] = useState<View>('home')
   const [stage, setStage] = useState<Stage>('source')
@@ -162,7 +155,7 @@ export default function Lottery() {
 
   const entries = useQuery({
     queryKey: ['prize-enrollments'],
-    queryFn: listPrizeEnrollments,
+    queryFn: () => listPrizeEnrollments(),
     enabled: view === 'home',
     placeholderData: (prev) => prev,
   })
@@ -318,6 +311,7 @@ export default function Lottery() {
       resetFlow()
       setView('home')
       void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+      void qc.invalidateQueries({ queryKey: ['bills'] })
       setBanner({ kind: 'info', text: 'This bill was already entered in the lottery — here it is.' })
       window.scrollTo({ top: 0 })
       return
@@ -360,6 +354,7 @@ export default function Lottery() {
     onSuccess: (en) => {
       qc.setQueryData(['prize-enrollment', en.id], en)
       void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+      void qc.invalidateQueries({ queryKey: ['bills'] })
       setResult(en)
       setStage('done')
       window.scrollTo({ top: 0 })
@@ -557,6 +552,7 @@ export default function Lottery() {
                         .join(' · ')}
                     </small>
                   </span>
+                  {b.prize_enrolled && <span className="badge badge-ok">Prize</span>}
                   <span className="lot-amt">
                     {b.total_amount ? formatNpr(b.total_amount) : '—'}
                   </span>
@@ -705,4 +701,20 @@ export default function Lottery() {
       )}
     </>
   )
+}
+
+export default function Lottery() {
+  const config = useQuery({ queryKey: ['prize-config'], queryFn: getPrizeConfig, staleTime: Infinity })
+  if (config.isError) {
+    return (
+      <>
+        <p className="form-error">{errMsg(config.error)}</p>
+        <button type="button" className="btn" onClick={() => void config.refetch()}>
+          Retry
+        </button>
+      </>
+    )
+  }
+  if (!config.data) return <p className="page-body">Loading…</p>
+  return config.data.submission_mode === 'handoff' ? <PrizeHandoff /> : <DirectLottery />
 }
