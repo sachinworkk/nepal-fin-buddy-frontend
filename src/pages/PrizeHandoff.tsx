@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listBills } from '../api/bills'
 import { ApiError } from '../api/client'
+import { listExpenses } from '../api/expenses'
 import {
   createPrizeHandoff,
   listEligiblePrizeBills,
@@ -14,7 +15,7 @@ import {
   type PrizeHandoffOut,
 } from '../api/prize'
 import { copyText } from '../lib/clipboard'
-import { fmtAd, formatNpr } from '../lib/dates'
+import { fmtAd, formatNpr, useBsConvert } from '../lib/dates'
 import { loadPrizeProfile, savePrizeProfile } from '../lib/prizeProfile'
 import { validateAddress, validateMobile, validateName } from '../lib/prizeRules'
 
@@ -41,7 +42,6 @@ function handoffRows(h: PrizeHandoffOut): { key: string; label: string; value: s
     { key: 'seller_pan_no', label: 'Seller PAN', value: f.seller_pan_no },
     { key: 'bill_date', label: 'Bill date', value: f.bill_date },
     { key: 'billed_total_amount', label: 'Total amount', value: f.billed_total_amount },
-    { key: 'payment_method', label: 'Payment method', value: f.payment_method },
     { key: 'name', label: 'Name', value: f.name },
     { key: 'address', label: 'Address', value: f.address },
     { key: 'mobile_number', label: 'Mobile', value: f.mobile_number },
@@ -58,7 +58,7 @@ function isMobileWeb(): boolean {
 }
 
 /** Fragment for the optional prefill extension; inert (and never sent to a server) without it. */
-function portalUrlWithPrefill(h: PrizeHandoffOut): string {
+function portalUrlWithPrefill(h: PrizeHandoffOut, billDateBs?: string): string {
   if (isMobileWeb()) return h.portal_url
   const f = h.fields
   const json = JSON.stringify({
@@ -67,8 +67,9 @@ function portalUrlWithPrefill(h: PrizeHandoffOut): string {
       bill_number: f.bill_number,
       seller_pan_no: f.seller_pan_no,
       bill_date: f.bill_date,
+      // The portal's calendar switches to BS when its UI is in Nepali.
+      bill_date_bs: billDateBs,
       billed_total_amount: f.billed_total_amount,
-      payment_method: f.payment_method,
       name: f.name,
       address: f.address,
       mobile_number: f.mobile_number,
@@ -96,6 +97,7 @@ function HandoffSheet({
   const [error, setError] = useState<string | null>(null)
   const timer = useRef<number | undefined>(undefined)
   const rows = handoffRows(handoff)
+  const billDateBs = useBsConvert({ ad: handoff.fields.bill_date }).data?.bs
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -145,7 +147,7 @@ function HandoffSheet({
         <button
           type="button"
           className="btn btn-accent btn-lg btn-block sheet-open"
-          onClick={() => window.open(portalUrlWithPrefill(handoff), '_blank', 'noopener')}
+          onClick={() => window.open(portalUrlWithPrefill(handoff, billDateBs), '_blank', 'noopener')}
         >
           Open IRD portal ↗
         </button>
@@ -371,6 +373,11 @@ export default function PrizeHandoff() {
   const eligible = useQuery({ queryKey: ['prize-eligible'], queryFn: listEligiblePrizeBills })
   // Enrollments carry no vendor name; borrow it from the bills list (shared cache with Expenses).
   const vendors = useQuery({ queryKey: ['bills'], queryFn: listBills, staleTime: 30_000 })
+  const expenses = useQuery({
+    queryKey: ['expenses', 'cash-check'],
+    queryFn: () => listExpenses({ limit: 500, offset: 0 }),
+    staleTime: 30_000,
+  })
   const entries = useQuery({
     queryKey: ['prize-enrollments'],
     queryFn: () => listPrizeEnrollments(),
@@ -381,7 +388,14 @@ export default function PrizeHandoff() {
   const waiting = all.filter((e) => e.status === 'handed_off')
   const history = all.filter((e) => e.status !== 'handed_off')
   const taken = new Set(all.filter((e) => e.status !== 'failed').map((e) => e.bill_id))
-  const bills = (eligible.data ?? []).filter((b) => !taken.has(b.bill_id))
+  // Only cash bills can be entered; QR payments reach the IRD on their own. A bill whose
+  // expense says card/QR/cheque is hidden; bills with no recorded method are treated as cash.
+  const nonCash = new Set(
+    (expenses.data?.items ?? [])
+      .filter((x) => x.bill_id && x.payment_method && x.payment_method !== 'cash')
+      .map((x) => x.bill_id),
+  )
+  const bills = (eligible.data ?? []).filter((b) => !taken.has(b.bill_id) && !nonCash.has(b.bill_id))
 
   const resume = useMutation({
     mutationFn: (en: PrizeEnrollmentOut) =>
@@ -481,8 +495,10 @@ export default function PrizeHandoff() {
 
           <section className="section">
             <div className="section-head">
-              <h3>Eligible bills</h3>
-              {bills.length > 0 && <span>Pick a bill to enter it</span>}
+              <h3>Cash bills for the IRD lottery</h3>
+              <span>
+                Only cash bills can be entered here — QR payments are added to the IRD automatically
+              </span>
             </div>
             {eligible.isError && (
               <p className="notice notice-err">
@@ -497,7 +513,7 @@ export default function PrizeHandoff() {
               <div className="list-card">
                 <div className="list-empty">
                   <span>
-                    No eligible bills right now. Confirmed cash bills with a seller PAN and bill number
+                    No cash bills right now. Confirmed cash bills with a seller PAN and bill number
                     show up here.
                   </span>
                   <Link to="/snap" className="btn btn-ghost btn-sm">

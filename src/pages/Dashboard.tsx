@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getByCategory, getMonthly, getSummary } from '../api/stats'
+import { categoryLabel, useCategories } from '../api/lookups'
 import MonthlyChart from '../components/MonthlyChart'
 import { formatNpr } from '../lib/dates'
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
-const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
 
 export default function Dashboard() {
+  const categories = useCategories()
   const summary = useQuery({ queryKey: ['stats', 'summary'], queryFn: getSummary })
   const monthly = useQuery({ queryKey: ['stats', 'monthly', 6], queryFn: () => getMonthly(6) })
   const current = monthly.data?.[monthly.data.length - 1]
@@ -100,7 +101,7 @@ export default function Dashboard() {
             {topCats.map((c) => (
               <li key={c.category}>
                 <div className="cat-row">
-                  <span>{cap(c.category)}</span>
+                  <span>{categoryLabel(categories.data, c.category)}</span>
                   <span className="cat-amt">
                     {formatNpr(c.total)} <em>{Math.round(c.share * 100)}% · {c.count}×</em>
                   </span>

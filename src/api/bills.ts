@@ -20,6 +20,7 @@ export interface BillOut {
   taxable_amount?: string | null
   vat_amount?: string | null
   total_amount?: string | null
+  payment_method: string | null
   status: 'extracted' | 'confirmed'
   prize_enrolled?: boolean
   extraction_confidence?: number | null
@@ -39,5 +40,5 @@ export const updateBill = (billId: string, body: Partial<BillOut>) =>
 
 export const confirmBill = (
   billId: string,
-  body: Partial<BillOut> & { category: Category; total_amount: string },
+  body: Omit<Partial<BillOut>, 'payment_method'> & { category: Category; total_amount: string; payment_method?: string },
 ) => post<BillOut>(`/bills/${billId}/confirm`, body)
