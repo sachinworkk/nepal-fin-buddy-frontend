@@ -1,12 +1,5 @@
 import { ApiError, get, patch, post } from './client'
 
-export interface PrizeConfig {
-  turnstile_sitekey: string
-  payment_methods: string[]
-  /** "handoff": the user submits on prize.ird.gov.np; "direct": we submit (test/mock mode). */
-  submission_mode: 'direct' | 'handoff'
-}
-
 export type PrizeEnrollmentStatus = 'handed_off' | 'submitted' | 'failed'
 
 export interface PrizeEnrollmentOut {
@@ -27,18 +20,6 @@ export interface PrizeEnrollmentOut {
   duplicate: boolean
   last_error: string | null
   created_at: string
-}
-
-/** Bill details are prefilled server-side from the confirmed bill `bill_id`. */
-export interface PrizeEnrollmentIn {
-  bill_id: string
-  payment_method: string
-  name: string
-  address: string
-  mobile_number: string
-  company_website: string | null
-  turnstile_token: string
-  form_started_at: number
 }
 
 export interface PrizeEligibleBill {
@@ -78,11 +59,6 @@ export interface PrizeHandoffOut {
   fields: PrizeHandoffFields
   portal_url: string
 }
-
-export const getPrizeConfig = () => get<PrizeConfig>('/prize/config')
-
-export const createPrizeEnrollment = (body: PrizeEnrollmentIn) =>
-  post<PrizeEnrollmentOut>('/prize/enrollments', body)
 
 export const listPrizeEnrollments = (billId?: string) =>
   get<PrizeEnrollmentOut[]>(billId ? `/prize/enrollments?bill_id=${encodeURIComponent(billId)}` : '/prize/enrollments')

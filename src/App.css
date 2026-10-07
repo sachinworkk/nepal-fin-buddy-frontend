@@ -1769,17 +1769,6 @@ main.wide {
   color: var(--danger);
 }
 
-.turnstile-box {
-  margin: var(--sp-2) 0;
-  min-height: 65px;
-}
-
-.turnstile-note {
-  margin: 0;
-  color: var(--text-3);
-  font-size: var(--text-xs);
-}
-
 @media (max-width: 640px) {
   .lot-rows-head {
     display: none;

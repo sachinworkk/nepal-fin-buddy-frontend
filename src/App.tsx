@@ -7,7 +7,7 @@ import Chat from './pages/Chat'
 import Dashboard from './pages/Dashboard'
 import Expenses from './pages/Expenses'
 import Landing from './pages/Landing'
-import Lottery from './pages/Lottery'
+import PrizeHandoff from './pages/PrizeHandoff'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Settings from './pages/Settings'
@@ -42,7 +42,7 @@ export default function App() {
           />
           <Route path="/snap" element={authed(<Snap />)} />
           <Route path="/expenses" element={authed(<Expenses />)} />
-          <Route path="/ird-lottery" element={authed(<Lottery />)} />
+          <Route path="/ird-lottery" element={authed(<PrizeHandoff />)} />
           <Route path="/chat" element={authed(<Chat />)} />
           <Route path="/settings" element={authed(<Settings />)} />
           <Route path="*" element={<Navigate to="/" replace />} />
