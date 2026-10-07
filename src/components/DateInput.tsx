@@ -39,10 +39,11 @@ export default function DateInput({ label, value, onChange, bsOnly, required }: 
     preview = mode === 'bs' ? `= ${new Date(conv.data.ad + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : `= ${conv.data.bs_label}`
   }
   const err = conv.error instanceof Error ? conv.error.message : ''
+  const status = err || preview || (conv.isFetching ? 'Converting…' : '')
 
   return (
-    <div className="snap-field date-input">
-      <span className="date-input-head">
+    <div className="field">
+      <span>
         {label}
         {!bsOnly && (
           <span className="seg" role="group" aria-label={`${label} calendar`}>
@@ -67,7 +68,7 @@ export default function DateInput({ label, value, onChange, bsOnly, required }: 
         <input
           className="input"
           inputMode="numeric"
-          placeholder="YYYY.MM.DD  (e.g. २०८२.०६.१९)"
+          placeholder="YYYY.MM.DD"
           required={required}
           value={value.bs ?? ''}
           onChange={(e) => {
@@ -76,9 +77,11 @@ export default function DateInput({ label, value, onChange, bsOnly, required }: 
           }}
         />
       )}
-      <small className={`date-preview${err ? ' err' : ''}`} aria-live="polite">
-        {err || preview || (conv.isFetching ? 'Converting…' : ' ')}
-      </small>
+      {status && (
+        <small className={`date-preview${err ? ' err' : ''}`} aria-live="polite">
+          {status}
+        </small>
+      )}
     </div>
   )
 }

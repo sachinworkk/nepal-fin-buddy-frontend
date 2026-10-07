@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { listBills } from '../api/bills'
 import { ApiError } from '../api/client'
 import {
   createPrizeHandoff,
@@ -30,7 +31,7 @@ interface Customer {
 function DaysBadge({ days }: { days: number | null }) {
   if (days === null) return null
   const text = days < 0 ? 'Expired' : days === 0 ? 'Ends today' : `${days} day${days === 1 ? '' : 's'} left`
-  return <span className={`badge ${days <= URGENT_DAYS ? 'badge-fail' : 'badge-muted'}`}>{text}</span>
+  return <span className={`badge ${days < 0 ? 'badge-fail' : days <= URGENT_DAYS ? 'badge-warn' : 'badge-muted'}`}>{text}</span>
 }
 
 function handoffRows(h: PrizeHandoffOut): { key: string; label: string; value: string }[] {
@@ -131,8 +132,8 @@ function HandoffSheet({
       >
         <div className="sheet-head">
           <h3 id="sheet-title">Submit on the IRD portal</h3>
-          <button type="button" className="btn btn-ghost" onClick={onClose}>
-            Close
+          <button type="button" className="sheet-close" aria-label="Close" onClick={onClose}>
+            ×
           </button>
         </div>
         <ol className="sheet-steps">
@@ -143,12 +144,22 @@ function HandoffSheet({
 
         <button
           type="button"
-          className="btn btn-accent sheet-open"
+          className="btn btn-accent btn-lg btn-block sheet-open"
           onClick={() => window.open(portalUrlWithPrefill(handoff), '_blank', 'noopener')}
         >
-          Open IRD portal
+          Open IRD portal ↗
         </button>
 
+        <div className="sheet-section">
+          <span>Details to paste</span>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => void copy('all', rows.map((r) => `${r.label}: ${r.value}`).join('\n'))}
+          >
+            {copied === 'all' ? 'Copied' : 'Copy all'}
+          </button>
+        </div>
         <div className="hand-rows">
           {rows.map((r) => (
             <div key={r.key} className="hand-row">
@@ -156,7 +167,7 @@ function HandoffSheet({
               <strong className="hand-value">{r.value}</strong>
               <button
                 type="button"
-                className="btn btn-ghost hand-copy"
+                className="btn btn-ghost btn-sm hand-copy"
                 aria-label={`Copy ${r.label}`}
                 onClick={() => void copy(r.key, r.value)}
               >
@@ -165,15 +176,6 @@ function HandoffSheet({
             </div>
           ))}
         </div>
-        <div className="settings-actions">
-          <button
-            type="button"
-            className="btn"
-            onClick={() => void copy('all', rows.map((r) => `${r.label}: ${r.value}`).join('\n'))}
-          >
-            {copied === 'all' ? 'Copied' : 'Copy all'}
-          </button>
-        </div>
         <p className="lot-copy-status" role="status" aria-live="polite">
           {copied ? 'Copied to clipboard' : ''}
         </p>
@@ -181,7 +183,8 @@ function HandoffSheet({
           <p className="form-error">Couldn't copy automatically — press and hold a value to copy it.</p>
         )}
 
-        <label className="snap-field">
+        <hr className="sheet-divider" />
+        <label className="field">
           <span>Coupon number (optional)</span>
           <input
             className="input"
@@ -193,10 +196,10 @@ function HandoffSheet({
           />
         </label>
         {error && <p className="form-error">{error}</p>}
-        <div className="snap-actions">
+        <div className="form-actions">
           <button
             type="button"
-            className="btn btn-accent"
+            className="btn btn-accent btn-block"
             disabled={submitted.isPending}
             onClick={() => {
               setError(null)
@@ -288,7 +291,7 @@ function BillForm({
   const otherErrs = Object.entries(serverErrs).filter(([k]) => !shown.includes(k))
 
   return (
-    <form className="snap-card" onSubmit={onSubmit} noValidate>
+    <form className="card" onSubmit={onSubmit} noValidate>
       <h3 className="snap-items-head">Bill</h3>
       <div className="lot-bill-summary">
         <div>
@@ -310,16 +313,18 @@ function BillForm({
       </div>
 
       <h3 className="snap-items-head">Your details</h3>
-      <p className="settings-muted">We'll remember these on this device for next time.</p>
-      <div className="snap-grid">
+      <p className="muted section-note">
+        We'll remember these on this device for next time.
+      </p>
+      <div className="form-grid">
         {(
           [
             ['name', 'Full name', 'name', undefined],
-            ['address', 'Address', 'street-address', undefined],
             ['mobile_number', 'Mobile number', 'tel', '98XXXXXXXX'],
+            ['address', 'Address', 'street-address', undefined],
           ] as const
         ).map(([k, label, ac, ph]) => (
-          <label key={k} className="snap-field">
+          <label key={k} className={`field${k === 'address' ? ' span-2' : ''}`}>
             <span>{label}</span>
             <input
               className="input"
@@ -330,7 +335,7 @@ function BillForm({
               value={c[k]}
               onChange={(e) => edit(k, e.target.value)}
             />
-            {errFor(k) && <small className="lot-field-err">{errFor(k)}</small>}
+            {errFor(k) && <small className="field-error">{errFor(k)}</small>}
           </label>
         ))}
       </div>
@@ -342,14 +347,14 @@ function BillForm({
           ))}
         </ul>
       )}
-      {banner && <p className="form-error lot-banner-err">{banner}</p>}
+      {banner && <p className="notice notice-err">{banner}</p>}
 
-      <div className="snap-actions">
-        <button type="submit" className="btn btn-accent" disabled={mut.isPending}>
-          {mut.isPending ? 'Preparing…' : 'Continue to IRD portal'}
-        </button>
+      <div className="form-actions">
         <button type="button" className="btn btn-ghost" disabled={mut.isPending} onClick={onBack}>
           Back
+        </button>
+        <button type="submit" className="btn btn-accent" disabled={mut.isPending}>
+          {mut.isPending ? 'Preparing…' : 'Continue to IRD portal'}
         </button>
       </div>
     </form>
@@ -364,6 +369,8 @@ export default function PrizeHandoff() {
   const [continueErr, setContinueErr] = useState<string | null>(null)
 
   const eligible = useQuery({ queryKey: ['prize-eligible'], queryFn: listEligiblePrizeBills })
+  // Enrollments carry no vendor name; borrow it from the bills list (shared cache with Expenses).
+  const vendors = useQuery({ queryKey: ['bills'], queryFn: listBills, staleTime: 30_000 })
   const entries = useQuery({
     queryKey: ['prize-enrollments'],
     queryFn: () => listPrizeEnrollments(),
@@ -411,95 +418,118 @@ export default function PrizeHandoff() {
     window.scrollTo({ top: 0 })
   }
 
+  const vendorOf = (billId: string | null) =>
+    (billId && vendors.data?.find((b) => b.id === billId)?.vendor_name) || null
+
   return (
     <>
-      <div className="expenses-topbar">
+      <div className="page-header">
         <div>
-          <h2 className="page-title">Prize</h2>
+          <h2 className="page-title">IRD lottery</h2>
           <p className="page-sub">
-            Enter confirmed cash bills in the IRD taxpayer prize lottery. We prefill the details; you
-            submit on the IRD portal.
+            Enter confirmed cash bills in the IRD taxpayer prize lottery. We prepare the details; you
+            submit them on the IRD portal.
           </p>
         </div>
       </div>
 
-      {notice && <p className="lot-banner-info">{notice}</p>}
+      {notice && (
+        <p className="notice" role="status">
+          <span>{notice}</span>
+          <button type="button" className="notice-dismiss" aria-label="Dismiss" onClick={() => setNotice(null)}>
+            ×
+          </button>
+        </p>
+      )}
 
       {selected ? (
         <BillForm bill={selected} onBack={() => setSelected(null)} onHandoff={setHandoff} />
       ) : (
         <>
           {waiting.length > 0 && (
-            <section className="lot-section">
-              <h3 className="snap-items-head">Waiting for you</h3>
-              {continueErr && <p className="form-error">{continueErr}</p>}
-              <div className="lot-card">
+            <section className="section">
+              <div className="section-head">
+                <h3>Waiting for you</h3>
+                <span>Finish submitting on the IRD portal</span>
+              </div>
+              {continueErr && <p className="notice notice-err">{continueErr}</p>}
+              <div className="list-card">
                 {waiting.map((en) => (
-                  <div key={en.id} className="hand-wait">
-                    <span className="lot-bill-main">
-                      <strong>{en.bill_number || '—'}</strong>
+                  <div key={en.id} className="list-row">
+                    <span className="list-main">
+                      <strong>{vendorOf(en.bill_id) ?? `Bill ${en.bill_number || '—'}`}</strong>
                       <small>
-                        {fmtAd(en.bill_date)} · {formatNpr(en.billed_total_amount)}
+                        Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)}
                       </small>
                     </span>
-                    <button
-                      type="button"
-                      className="btn btn-accent"
-                      disabled={resume.isPending || !en.bill_id}
-                      onClick={() => resume.mutate(en)}
-                    >
-                      {resume.isPending && resume.variables?.id === en.id ? 'Opening…' : 'Continue'}
-                    </button>
+                    <span className="list-end">
+                      <span className="amount">{formatNpr(en.billed_total_amount)}</span>
+                      <button
+                        type="button"
+                        className="btn btn-accent btn-sm"
+                        disabled={resume.isPending || !en.bill_id}
+                        onClick={() => resume.mutate(en)}
+                      >
+                        {resume.isPending && resume.variables?.id === en.id ? 'Opening…' : 'Continue'}
+                      </button>
+                    </span>
                   </div>
                 ))}
               </div>
             </section>
           )}
 
-          <section className="lot-section">
-            <h3 className="snap-items-head">Eligible bills</h3>
+          <section className="section">
+            <div className="section-head">
+              <h3>Eligible bills</h3>
+              {bills.length > 0 && <span>Pick a bill to enter it</span>}
+            </div>
             {eligible.isError && (
-              <p className="form-error">
-                {errMsg(eligible.error)}{' '}
-                <button type="button" className="btn" onClick={() => void eligible.refetch()}>
+              <p className="notice notice-err">
+                <span>{errMsg(eligible.error)}</span>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => void eligible.refetch()}>
                   Retry
                 </button>
               </p>
             )}
             {eligible.isLoading && <p className="page-body">Loading your bills…</p>}
             {!eligible.isLoading && !eligible.isError && bills.length === 0 && (
-              <div className="expenses-empty">
-                <strong>No eligible bills</strong>
-                <span>
-                  Confirmed cash bills with a valid PAN and bill number appear here.
-                </span>
-                <span className="dash-empty-links">
-                  <Link to="/snap" className="btn btn-accent">
+              <div className="list-card">
+                <div className="list-empty">
+                  <span>
+                    No eligible bills right now. Confirmed cash bills with a seller PAN and bill number
+                    show up here.
+                  </span>
+                  <Link to="/snap" className="btn btn-ghost btn-sm">
                     Snap a bill
                   </Link>
-                </span>
+                </div>
               </div>
             )}
             {bills.length > 0 && (
-              <div className="lot-card">
+              <div className="list-card">
                 {bills.map((b) => (
                   <button
                     key={b.bill_id}
                     type="button"
-                    className="hand-bill"
+                    className="list-row"
                     onClick={() => {
                       setNotice(null)
                       setSelected(b)
+                      window.scrollTo({ top: 0 })
                     }}
                   >
-                    <span className="lot-bill-main">
+                    <span className="list-main">
                       <strong>{b.vendor_name || 'Untitled vendor'}</strong>
                       <small>
-                        PAN {b.seller_pan_no} · Bill {b.bill_number} · {fmtAd(b.bill_date)}
+                        Bill {b.bill_number} · PAN {b.seller_pan_no} · {fmtAd(b.bill_date)}
                       </small>
                     </span>
-                    <DaysBadge days={b.days_left} />
-                    <span className="lot-amt">{formatNpr(b.billed_total_amount)}</span>
+                    <span className="list-end">
+                      <DaysBadge days={b.days_left} />
+                      <span className="amount">{formatNpr(b.billed_total_amount)}</span>
+                      <span className="list-chevron" aria-hidden>›</span>
+                    </span>
                   </button>
                 ))}
               </div>
@@ -507,22 +537,26 @@ export default function PrizeHandoff() {
           </section>
 
           {history.length > 0 && (
-            <section className="lot-section">
-              <h3 className="snap-items-head">History</h3>
-              <div className="lot-card">
+            <section className="section">
+              <div className="section-head">
+                <h3>History</h3>
+              </div>
+              <div className="list-card">
                 {history.map((en) => (
-                  <div key={en.id} className="hand-wait">
-                    <span className="lot-bill-main">
-                      <strong>{en.bill_number || '—'}</strong>
+                  <div key={en.id} className="list-row">
+                    <span className="list-main">
+                      <strong>{vendorOf(en.bill_id) ?? `Bill ${en.bill_number || '—'}`}</strong>
                       <small>
-                        {fmtAd(en.bill_date)} · {formatNpr(en.billed_total_amount)}
+                        Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)} · {formatNpr(en.billed_total_amount)}
                       </small>
                     </span>
-                    <span className="lot-coupon-inline">
-                      {en.prize_coupon_number ?? (en.status === 'submitted' ? 'No coupon saved' : '')}
-                    </span>
-                    <span className={`badge ${en.status === 'submitted' ? 'badge-ok' : 'badge-fail'}`}>
-                      {en.status === 'submitted' ? 'Submitted' : 'Failed'}
+                    <span className="list-end">
+                      {en.prize_coupon_number && (
+                        <span className="lot-coupon-inline">Coupon {en.prize_coupon_number}</span>
+                      )}
+                      <span className={`badge ${en.status === 'submitted' ? 'badge-ok' : 'badge-fail'}`}>
+                        {en.status === 'submitted' ? 'Submitted' : 'Failed'}
+                      </span>
                     </span>
                   </div>
                 ))}

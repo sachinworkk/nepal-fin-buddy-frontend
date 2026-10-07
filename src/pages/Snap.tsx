@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { confirmBill, updateBill, uploadBill, type BillItem, type BillOut } from '../api/bills'
 import { CATEGORIES, type Category } from '../api/expenses'
+import { formatNpr } from '../lib/dates'
 
 type Stage = 'upload' | 'editing' | 'confirmed'
 
@@ -37,15 +39,15 @@ function toDraft(b: BillOut): Draft {
 }
 
 const FIELDS: { key: 'vendor_name' | 'vendor_pan' | 'bill_number' | 'bill_date_ad'
-  | 'subtotal' | 'discount' | 'vat_amount' | 'total_amount'; label: string; type?: string }[] = [
+  | 'subtotal' | 'discount' | 'vat_amount' | 'total_amount'; label: string; type?: string; numeric?: boolean }[] = [
   { key: 'vendor_name', label: 'Vendor' },
   { key: 'vendor_pan', label: 'Vendor PAN' },
   { key: 'bill_number', label: 'Bill number' },
   { key: 'bill_date_ad', label: 'Date (AD)', type: 'date' },
-  { key: 'subtotal', label: 'Subtotal' },
-  { key: 'discount', label: 'Discount' },
-  { key: 'vat_amount', label: 'VAT amount' },
-  { key: 'total_amount', label: 'Total amount' },
+  { key: 'subtotal', label: 'Subtotal', numeric: true },
+  { key: 'discount', label: 'Discount', numeric: true },
+  { key: 'vat_amount', label: 'VAT amount', numeric: true },
+  { key: 'total_amount', label: 'Total amount', numeric: true },
 ]
 
 export default function Snap() {
@@ -54,6 +56,7 @@ export default function Snap() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [draft, setDraft] = useState<Draft | null>(null)
+  const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   async function pick(f: File | null) {
@@ -129,55 +132,83 @@ export default function Snap() {
 
   return (
     <>
-      <h2 className="page-title">Snap a bill</h2>
-      <p className="page-sub">
-        Upload a bill photo or PDF. We extract the fields with AI — check them, fix anything
-        wrong, then confirm to record the expense.
-      </p>
+      <div className="page-header">
+        <div>
+          <h2 className="page-title">Snap a bill</h2>
+          <p className="page-sub">
+            {stage === 'editing'
+              ? 'Check what we extracted, fix anything wrong, then confirm to record the expense.'
+              : 'Upload a bill photo or PDF and we\'ll pull out the vendor, items and totals for you.'}
+          </p>
+        </div>
+      </div>
 
-      {error && <p className="form-error snap-error">{error}</p>}
+      {error && <p className="notice notice-err snap-error" role="alert">{error}</p>}
 
       {stage === 'upload' && (
         <div
-          className="snap-drop"
-          onClick={() => inputRef.current?.click()}
+          className={`snap-drop${dragging ? ' dragging' : ''}${busy ? ' busy' : ''}`}
+          onClick={() => !busy && inputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault()
+            setDragging(true)
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault()
+            setDragging(false)
+            void pick(e.dataTransfer.files?.[0] ?? null)
+          }}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
+          aria-busy={busy}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && !busy && inputRef.current?.click()}
         >
           <input
             ref={inputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
             hidden
-            onChange={(e) => void pick(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              void pick(e.target.files?.[0] ?? null)
+              e.target.value = ''
+            }}
           />
-          <span className="snap-drop-icon" aria-hidden>📷</span>
-          <strong>{busy ? 'Extracting…' : 'Choose a bill photo or PDF'}</strong>
+          <span className="empty-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 8h3l2-3h6l2 3h3v11H4zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+            </svg>
+          </span>
+          <strong>{busy ? 'Reading your bill…' : 'Drop a bill here, or click to choose'}</strong>
           <span>JPEG, PNG, WebP or PDF · up to 10 MB</span>
-          {busy && (
-            <div className="snap-progress">
+          {busy ? (
+            <div className="snap-progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
               <div style={{ width: `${progress}%` }} />
             </div>
+          ) : (
+            <span className="btn btn-accent" aria-hidden>Choose file</span>
           )}
         </div>
       )}
 
       {stage === 'editing' && draft && (
-        <div className="snap-card">
-          <div className="snap-grid">
+        <div className="card">
+          <h3 className="snap-items-head">Bill details</h3>
+          <div className="form-grid">
             {FIELDS.map((f) => (
-              <label key={f.key} className="snap-field">
+              <label key={f.key} className="field">
                 <span>{f.label}</span>
                 <input
                   className="input"
                   type={f.type ?? 'text'}
+                  inputMode={f.numeric ? 'decimal' : undefined}
                   value={String(draft[f.key] ?? '')}
                   onChange={(e) => set(f.key, e.target.value)}
                 />
               </label>
             ))}
-            <label className="snap-field">
+            <label className="field">
               <span>Category</span>
               <select
                 className="input"
@@ -185,31 +216,44 @@ export default function Snap() {
                 onChange={(e) => set('category', e.target.value)}
               >
                 {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{c[0].toUpperCase() + c.slice(1)}</option>
                 ))}
               </select>
             </label>
           </div>
 
           <h3 className="snap-items-head">Items</h3>
+          {draft.items.length > 0 && (
+            <div className="snap-items-cols" aria-hidden>
+              <span>Description</span>
+              <span>Qty</span>
+              <span className="snap-item-amt">Amount</span>
+              <span />
+            </div>
+          )}
           <div className="snap-items">
             {draft.items.map((it, i) => (
               <div key={i} className="snap-item">
                 <input
                   className="input"
                   placeholder="Description"
+                  aria-label={`Item ${i + 1} description`}
                   value={it.description}
                   onChange={(e) => setItem(i, 'description', e.target.value)}
                 />
                 <input
-                  className="input snap-item-qty"
+                  className="input"
                   placeholder="Qty"
+                  inputMode="decimal"
+                  aria-label={`Item ${i + 1} quantity`}
                   value={it.quantity ?? ''}
                   onChange={(e) => setItem(i, 'quantity', e.target.value)}
                 />
                 <input
                   className="input snap-item-amt"
-                  placeholder="Amount"
+                  placeholder="0.00"
+                  inputMode="decimal"
+                  aria-label={`Item ${i + 1} amount`}
                   value={it.amount ?? ''}
                   onChange={(e) => setItem(i, 'amount', e.target.value)}
                 />
@@ -224,9 +268,21 @@ export default function Snap() {
               </div>
             ))}
           </div>
-          <button type="button" className="snap-add" onClick={addItem}>+ Add item</button>
+          <button type="button" className="btn-link snap-add" onClick={addItem}>+ Add item</button>
 
-          <div className="snap-actions">
+          <div className="form-actions">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={busy}
+              onClick={() => {
+                setDraft(null)
+                setError('')
+                setStage('upload')
+              }}
+            >
+              Discard
+            </button>
             <button
               type="button"
               className="btn btn-accent"
@@ -235,38 +291,36 @@ export default function Snap() {
             >
               {busy ? 'Confirming…' : 'Confirm expense'}
             </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              disabled={busy}
-              onClick={() => {
-                setDraft(null)
-                setStage('upload')
-              }}
-            >
-              Cancel
-            </button>
           </div>
         </div>
       )}
 
       {stage === 'confirmed' && (
-        <div className="snap-done">
-          <h3>Expense recorded ✓</h3>
+        <div className="empty-state snap-done">
+          <span className="empty-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.4"
+              strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          </span>
+          <strong>Expense recorded</strong>
           <p>
-            {draft?.vendor_name || 'The bill'} · Rs. {draft?.total_amount} was added to your
+            {draft?.vendor_name || 'The bill'} · {formatNpr(draft?.total_amount ?? 0)} was added to your
             expenses and is now searchable in chat.
           </p>
-          <button
-            type="button"
-            className="btn btn-accent"
-            onClick={() => {
-              setDraft(null)
-              setStage('upload')
-            }}
-          >
-            Snap another bill
-          </button>
+          <div className="empty-actions">
+            <button
+              type="button"
+              className="btn btn-accent"
+              onClick={() => {
+                setDraft(null)
+                setStage('upload')
+              }}
+            >
+              Snap another bill
+            </button>
+            <Link className="btn btn-ghost" to="/expenses">View expenses</Link>
+          </div>
         </div>
       )}
     </>

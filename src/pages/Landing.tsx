@@ -116,8 +116,13 @@ export default function Landing() {
 
       {/* Sign-up band */}
       <section className="cta-band">
-        <h2>Ready to take control?</h2>
-        <p>Log in and snap your first bill — it takes less than a minute.</p>
+        <div>
+          <h2>Ready to take control?</h2>
+          <p>Create a free account and snap your first bill — it takes less than a minute.</p>
+        </div>
+        <a href="/register" className="btn btn-accent btn-lg">
+          Get started
+        </a>
       </section>
     </div>
   )

@@ -40,24 +40,33 @@ export default function Register({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="login-wrap">
+      <a href="/" className="brand">
+        <span className="brand-mark" aria-hidden>
+          ₹
+        </span>
+        Nepal Fin Buddy
+      </a>
       <form className="login" onSubmit={(e) => void submit(e)}>
         <div className="login-head">
           <h2>Create your account</h2>
           <p>Start tracking your money in NPR with BS dates.</p>
         </div>
-        <div className="field">
-          <input className="input" type="text" placeholder="Full name (optional)" autoComplete="name"
+        <label className="field">
+          <span>Full name (optional)</span>
+          <input className="input" type="text" autoComplete="name" autoFocus
             value={fullName} onChange={(e) => setFullName(e.target.value)} />
-        </div>
-        <div className="field">
-          <input className="input" type="email" placeholder="Email" autoComplete="email" required
+        </label>
+        <label className="field">
+          <span>Email</span>
+          <input className="input" type="email" placeholder="you@example.com" autoComplete="email" required
             value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div className="field">
-          <input className="input" type="password" placeholder="Password (min 8 characters)"
+        </label>
+        <label className="field">
+          <span>Password</span>
+          <input className="input" type="password" placeholder="At least 8 characters"
             autoComplete="new-password" minLength={8} required
             value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
+        </label>
         <fieldset className="lang-pick">
           <legend>Preferred language</legend>
           <label><input type="radio" name="lang" checked={lang === 'en'} onChange={() => setLang('en')} /> English</label>
