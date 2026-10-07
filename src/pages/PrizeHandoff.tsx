@@ -5,6 +5,7 @@ import { listBills } from '../api/bills'
 import { ApiError } from '../api/client'
 import {
   createPrizeHandoff,
+  dismissPrizeHandoff,
   listEligiblePrizeBills,
   listPrizeEnrollments,
   markPrizeSubmitted,
@@ -380,7 +381,9 @@ export default function PrizeHandoff() {
   const all = entries.data ?? []
   const waiting = all.filter((e) => e.status === 'handed_off')
   const history = all.filter((e) => e.status !== 'handed_off')
-  const taken = new Set(all.filter((e) => e.status !== 'failed').map((e) => e.bill_id))
+  const taken = new Set(
+    all.filter((e) => e.status === 'submitted' || e.status === 'handed_off').map((e) => e.bill_id),
+  )
   const bills = (eligible.data ?? []).filter((b) => !taken.has(b.bill_id))
 
   const resume = useMutation({
@@ -401,6 +404,20 @@ export default function PrizeHandoff() {
         void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
         void qc.invalidateQueries({ queryKey: ['prize-eligible'] })
       }
+    },
+  })
+
+  // The bill was deleted after handoff (bill_id is SET NULL), so it can't be resumed — only closed out.
+  const closeOrphan = useMutation({
+    mutationFn: ({ en, dismiss }: { en: PrizeEnrollmentOut; dismiss: boolean }) =>
+      dismiss ? dismissPrizeHandoff(en.id) : markPrizeSubmitted(en.id),
+    onSuccess: () => {
+      setContinueErr(null)
+      void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+    },
+    onError: (e) => {
+      setContinueErr(errMsg(e))
+      if (e instanceof ApiError && e.status === 409) void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
     },
   })
 
@@ -463,15 +480,43 @@ export default function PrizeHandoff() {
                       </small>
                     </span>
                     <span className="list-end">
+                      {!en.bill_id && <span className="badge badge-warn">Bill deleted</span>}
                       <span className="amount">{formatNpr(en.billed_total_amount)}</span>
-                      <button
-                        type="button"
-                        className="btn btn-accent btn-sm"
-                        disabled={resume.isPending || !en.bill_id}
-                        onClick={() => resume.mutate(en)}
-                      >
-                        {resume.isPending && resume.variables?.id === en.id ? 'Opening…' : 'Continue'}
-                      </button>
+                      {en.bill_id ? (
+                        <button
+                          type="button"
+                          className="btn btn-accent btn-sm"
+                          disabled={resume.isPending}
+                          onClick={() => resume.mutate(en)}
+                        >
+                          {resume.isPending && resume.variables?.id === en.id ? 'Opening…' : 'Continue'}
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm"
+                            disabled={closeOrphan.isPending}
+                            title="The bill was deleted, so it can't be reopened. Dismiss it if you didn't enter it on the IRD portal."
+                            onClick={() => closeOrphan.mutate({ en, dismiss: true })}
+                          >
+                            {closeOrphan.isPending && closeOrphan.variables?.en.id === en.id && closeOrphan.variables.dismiss
+                              ? 'Dismissing…'
+                              : 'Dismiss'}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm"
+                            disabled={closeOrphan.isPending}
+                            title="The bill was deleted, so it can't be reopened. Mark it submitted if you already entered it on the IRD portal."
+                            onClick={() => closeOrphan.mutate({ en, dismiss: false })}
+                          >
+                            {closeOrphan.isPending && closeOrphan.variables?.en.id === en.id && !closeOrphan.variables.dismiss
+                              ? 'Saving…'
+                              : "I've submitted it"}
+                          </button>
+                        </>
+                      )}
                     </span>
                   </div>
                 ))}
@@ -554,9 +599,13 @@ export default function PrizeHandoff() {
                       {en.prize_coupon_number && (
                         <span className="lot-coupon-inline">Coupon {en.prize_coupon_number}</span>
                       )}
-                      <span className={`badge ${en.status === 'submitted' ? 'badge-ok' : 'badge-fail'}`}>
-                        {en.status === 'submitted' ? 'Submitted' : 'Failed'}
-                      </span>
+                      {en.status === 'submitted' ? (
+                        <span className="badge badge-ok">Submitted</span>
+                      ) : en.status === 'dismissed' ? (
+                        <span className="badge badge-muted">Dismissed</span>
+                      ) : (
+                        <span className="badge badge-fail">Failed</span>
+                      )}
                     </span>
                   </div>
                 ))}

@@ -1,6 +1,6 @@
 import { ApiError, get, patch, post } from './client'
 
-export type PrizeEnrollmentStatus = 'handed_off' | 'submitted' | 'failed'
+export type PrizeEnrollmentStatus = 'handed_off' | 'submitted' | 'failed' | 'dismissed'
 
 export interface PrizeEnrollmentOut {
   id: string
@@ -99,3 +99,7 @@ export const markPrizeSubmitted = (enrollmentId: string, prizeCouponNumber?: str
     status: 'submitted',
     ...(prizeCouponNumber ? { prize_coupon_number: prizeCouponNumber } : {}),
   })
+
+/** Closes a hand-off the user won't finish; it moves to history as dismissed. */
+export const dismissPrizeHandoff = (enrollmentId: string) =>
+  patch<PrizeEnrollmentOut>(`/prize/enrollments/${enrollmentId}`, { status: 'dismissed' })
