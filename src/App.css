@@ -1769,17 +1769,6 @@ main.wide {
   color: var(--danger);
 }
 
-.turnstile-box {
-  margin: var(--sp-2) 0;
-  min-height: 65px;
-}
-
-.turnstile-note {
-  margin: 0;
-  color: var(--text-3);
-  font-size: var(--text-xs);
-}
-
 @media (max-width: 640px) {
   .lot-rows-head {
     display: none;
@@ -1816,4 +1805,152 @@ main.wide {
     grid-area: status;
     text-align: right;
   }
+}
+
+/* IRD prize hand-off */
+.badge-muted {
+  background: var(--bg);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+
+.lot-section {
+  margin-bottom: var(--sp-5);
+}
+
+.hand-bill,
+.hand-wait {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.hand-bill {
+  cursor: pointer;
+  min-height: 56px;
+}
+
+.hand-bill:hover {
+  background: var(--accent-soft);
+}
+
+.hand-bill:last-child,
+.hand-wait:last-child {
+  border-bottom: 0;
+}
+
+.hand-bill .lot-bill-main,
+.hand-wait .lot-bill-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.lot-coupon-inline {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(20 20 20 / 0.45);
+}
+
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  padding: var(--sp-4) var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: var(--shadow-2);
+}
+
+@media (min-width: 640px) {
+  .sheet-backdrop {
+    align-items: center;
+  }
+  .sheet {
+    border-radius: var(--r-lg);
+  }
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.sheet-head h3 {
+  margin: 0;
+}
+
+.sheet-steps {
+  margin: var(--sp-3) 0;
+  padding-left: var(--sp-5);
+  color: var(--text-2);
+}
+
+.sheet-open {
+  width: 100%;
+  margin-bottom: var(--sp-4);
+}
+
+.hand-rows {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-3);
+}
+
+.hand-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 'label copy' 'value copy';
+  column-gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.hand-row:last-child {
+  border-bottom: 0;
+}
+
+.hand-label {
+  grid-area: label;
+  font-size: var(--text-xs);
+  color: var(--text-3);
+}
+
+.hand-value {
+  grid-area: value;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.hand-copy {
+  grid-area: copy;
+  min-width: 72px;
+  min-height: 44px;
+}
+
+.lot-copy-status {
+  min-height: 1.5em;
+  margin: 0 0 var(--sp-3);
+  font-size: var(--text-xs);
+  color: var(--text-2);
 }

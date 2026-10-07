@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { listBills } from '../api/bills'
 import { CATEGORIES, deleteExpense, listExpenses, type ExpenseOut } from '../api/expenses'
 import DateInput, { type DateValue } from '../components/DateInput'
 import ExpenseForm from '../components/ExpenseForm'
@@ -59,6 +60,9 @@ export default function Expenses() {
     queryFn: () => listExpenses({ ...filters, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
     placeholderData: (prev) => prev,
   })
+
+  const bills = useQuery({ queryKey: ['bills'], queryFn: listBills, staleTime: 30_000 })
+  const enteredBillIds = new Set((bills.data ?? []).filter((b) => b.prize_enrolled).map((b) => b.id))
 
   const remove = useMutation({
     mutationFn: deleteExpense,
@@ -172,6 +176,9 @@ export default function Expenses() {
                 <em className={`expenses-source expenses-source-${e.source}`}>
                   {SOURCE_LABEL[e.source]}
                 </em>
+                {e.bill_id && enteredBillIds.has(e.bill_id) && (
+                  <em className="expenses-source">Prize</em>
+                )}
               </span>
               <span className="expenses-cat">{e.category}</span>
               <span className="expenses-date">
