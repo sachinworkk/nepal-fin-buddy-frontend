@@ -79,7 +79,8 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
   const [bill, setBill] = useState<BillForm>(() => initialBill(expense))
   const [date, setDate] = useState<DateValue>(() => initialDate(expense))
   // A scanned bill keeps its own vendor, date and total; only its tax-invoice details are edited here.
-  const scanned = expense?.source === 'bill'
+  // If the scanned bill was deleted, new details make a manual bill from the fields above.
+  const scanned = expense?.source === 'bill' && !!expense.bill
 
   const mutation = useMutation({
     mutationFn: (body: typeof emptyForm) => {
