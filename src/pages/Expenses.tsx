@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { listBills } from '../api/bills'
 import { CATEGORIES, deleteExpense, listExpenses, type ExpenseOut } from '../api/expenses'
 import DateInput, { type DateValue } from '../components/DateInput'
 import ExpenseForm from '../components/ExpenseForm'
@@ -34,7 +35,8 @@ export default function Expenses() {
   const category = params.get('category') ?? ''
   const page = Math.max(1, Number(params.get('page')) || 1)
 
-  const [showForm, setShowForm] = useState(false)
+  // `?new=1` (e.g. from the dashboard) opens the add form straight away.
+  const [showForm, setShowForm] = useState(() => params.get('new') === '1')
   const [editing, setEditing] = useState<ExpenseOut | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
@@ -53,12 +55,25 @@ export default function Expenses() {
       return n
     })
 
+  const closeForm = () => {
+    setShowForm(false)
+    if (params.has('new'))
+      setParams((p) => {
+        const n = new URLSearchParams(p)
+        n.delete('new')
+        return n
+      }, { replace: true })
+  }
+
   const filters = { category, q, date_from: dateFrom, date_to: dateTo }
   const { data, isLoading, error } = useQuery({
     queryKey: ['expenses', filters, page],
     queryFn: () => listExpenses({ ...filters, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
     placeholderData: (prev) => prev,
   })
+
+  const bills = useQuery({ queryKey: ['bills'], queryFn: listBills, staleTime: 30_000 })
+  const enteredBillIds = new Set((bills.data ?? []).filter((b) => b.prize_enrolled).map((b) => b.id))
 
   const remove = useMutation({
     mutationFn: deleteExpense,
@@ -78,27 +93,23 @@ export default function Expenses() {
 
   return (
     <>
-      <div className="expenses-topbar">
+      <div className="page-header">
         <div>
           <h2 className="page-title">Expenses</h2>
           <p className="page-sub">Every expense you've recorded — from bills, chat, or by hand.</p>
         </div>
-        {showForm ? (
-          <button className="btn" type="button" onClick={() => setShowForm(false)}>
-            Close
-          </button>
-        ) : (
-          <button className="btn btn-accent" type="button" onClick={() => { setEditing(null); setShowForm(true) }}>
+        {!showForm && !editing && (
+          <button className="btn btn-accent" type="button" onClick={() => setShowForm(true)}>
             Add expense
           </button>
         )}
       </div>
 
-      {showForm && <ExpenseForm onDone={() => setShowForm(false)} />}
+      {showForm && <ExpenseForm onDone={closeForm} />}
       {editing && <ExpenseForm key={editing.id} expense={editing} onDone={() => setEditing(null)} />}
 
       <div className="filters">
-        <label className="snap-field">
+        <label className="field">
           <span>Category</span>
           <select className="input" value={category} onChange={(e) => setParam('category', e.target.value)}>
             <option value="">All categories</option>
@@ -109,7 +120,7 @@ export default function Expenses() {
             ))}
           </select>
         </label>
-        <label className="snap-field">
+        <label className="field">
           <span>Search</span>
           <input
             className="input"
@@ -124,9 +135,13 @@ export default function Expenses() {
         </label>
         <DateInput label="From" value={from} onChange={(v) => { setFrom(v); setParam('page', '') }} />
         <DateInput label="To" value={to} onChange={(v) => { setTo(v); setParam('page', '') }} />
-        {filtered && (
+      </div>
+
+      {filtered && (
+        <div className="filters-bar">
+          <span>{isLoading ? 'Filtering…' : `${total} matching expense${total === 1 ? '' : 's'}`}</span>
           <button
-            className="btn filters-clear"
+            className="btn-link"
             type="button"
             onClick={() => {
               setSearch('')
@@ -137,8 +152,8 @@ export default function Expenses() {
           >
             Clear filters
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {error && <p className="form-error">{errMsg(error)}</p>}
       {remove.isError && <p className="form-error">{errMsg(remove.error)}</p>}
@@ -146,13 +161,23 @@ export default function Expenses() {
       {isLoading && <p className="page-body">Loading expenses…</p>}
 
       {!isLoading && !error && expenses.length === 0 && (
-        <div className="expenses-empty">
+        <div className="empty-state">
           <strong>{filtered ? 'No expenses match these filters' : 'No expenses yet'}</strong>
-          <span>
+          <p>
             {filtered
               ? 'Try widening the date range or clearing the search.'
-              : 'Snap a bill or chat with your assistant — confirmed expenses show up here.'}
-          </span>
+              : 'Snap a bill or add one by hand — confirmed expenses show up here.'}
+          </p>
+          {!filtered && (
+            <div className="empty-actions">
+              <Link className="btn btn-accent" to="/snap">Snap a bill</Link>
+              {!showForm && (
+                <button className="btn btn-ghost" type="button" onClick={() => setShowForm(true)}>
+                  Add manually
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -161,17 +186,20 @@ export default function Expenses() {
           <div className="expenses-head">
             <span>Merchant</span>
             <span>Category</span>
-            <span>Date (BS)</span>
+            <span>Date</span>
             <span className="expenses-amount">Amount</span>
             <span />
           </div>
           {expenses.map((e) => (
             <div key={e.id} className="expenses-row">
               <span className="expenses-merchant">
-                <strong>{e.merchant || 'Untitled'}</strong>
-                <em className={`expenses-source expenses-source-${e.source}`}>
-                  {SOURCE_LABEL[e.source]}
-                </em>
+                <strong title={e.merchant || undefined}>{e.merchant || 'Untitled'}</strong>
+                <span className="expenses-tags">
+                  <em className="badge badge-muted">{SOURCE_LABEL[e.source]}</em>
+                  {e.bill_id && enteredBillIds.has(e.bill_id) && (
+                    <em className="badge badge-accent">Lottery entered</em>
+                  )}
+                </span>
               </span>
               <span className="expenses-cat">{e.category}</span>
               <span className="expenses-date">
@@ -182,21 +210,22 @@ export default function Expenses() {
               <span className="expenses-actions">
                 {confirmId === e.id ? (
                   <>
-                    <button className="btn btn-danger" type="button" disabled={remove.isPending}
-                      onClick={() => remove.mutate(e.id)}>
-                      {remove.isPending ? 'Deleting…' : 'Delete?'}
+                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => setConfirmId(null)}>
+                      Cancel
                     </button>
-                    <button className="btn" type="button" onClick={() => setConfirmId(null)}>
-                      Keep
+                    <button className="btn btn-danger btn-sm" type="button" disabled={remove.isPending}
+                      onClick={() => remove.mutate(e.id)}>
+                      {remove.isPending ? 'Deleting…' : 'Delete'}
                     </button>
                   </>
                 ) : (
                   <>
-                    <button className="btn" type="button"
-                      onClick={() => { setShowForm(false); setEditing(e); window.scrollTo({ top: 0 }) }}>
+                    <button className="btn btn-ghost btn-sm" type="button"
+                      onClick={() => { closeForm(); setEditing(e); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
                       Edit
                     </button>
-                    <button className="btn" type="button" onClick={() => setConfirmId(e.id)}>
+                    <button className="btn btn-ghost btn-sm" type="button" aria-label={`Delete ${e.merchant || 'expense'}`}
+                      onClick={() => setConfirmId(e.id)}>
                       Delete
                     </button>
                   </>
@@ -207,19 +236,19 @@ export default function Expenses() {
         </div>
       )}
 
-      {total > 0 && (
+      {pages > 1 && (
         <div className="pager">
-          <span className="settings-muted">
+          <span>
             {firstIdx}–{lastIdx} of {total}
           </span>
           <span className="pager-btns">
-            <button className="btn" type="button" disabled={page <= 1}
+            <button className="btn btn-ghost btn-sm" type="button" disabled={page <= 1}
               onClick={() => setParam('page', String(page - 1))}>
-              Prev
+              ← Previous
             </button>
-            <button className="btn" type="button" disabled={page >= pages}
+            <button className="btn btn-ghost btn-sm" type="button" disabled={page >= pages}
               onClick={() => setParam('page', String(page + 1))}>
-              Next
+              Next →
             </button>
           </span>
         </div>

@@ -26,14 +26,25 @@ export default function Dashboard() {
   if (!hasAny) {
     return (
       <>
-        <h2 className="page-title">Dashboard</h2>
-        <div className="expenses-empty">
-          <strong>No spending recorded yet</strong>
-          <span>Snap a bill or add an expense and your overview will show up here.</span>
-          <span className="dash-empty-links">
-            <Link className="btn btn-accent" to="/snap">Snap a bill</Link>
-            <Link className="btn" to="/expenses">Add expense</Link>
+        <div className="page-header">
+          <div>
+            <h2 className="page-title">Dashboard</h2>
+            <p className="page-sub">Your spending overview, in Bikram Sambat months.</p>
+          </div>
+        </div>
+        <div className="empty-state">
+          <span className="empty-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+            </svg>
           </span>
+          <strong>No spending recorded yet</strong>
+          <p>Snap a bill or add an expense and your monthly overview will show up here.</p>
+          <div className="empty-actions">
+            <Link className="btn btn-accent" to="/snap">Snap a bill</Link>
+            <Link className="btn btn-ghost" to="/expenses?new=1">Add expense</Link>
+          </div>
         </div>
       </>
     )
@@ -48,8 +59,13 @@ export default function Dashboard() {
 
   return (
     <>
-      <h2 className="page-title">Dashboard</h2>
-      <p className="page-sub">Your spending in Bikram Sambat months.</p>
+      <div className="page-header">
+        <div>
+          <h2 className="page-title">Dashboard</h2>
+          <p className="page-sub">Your spending overview, in Bikram Sambat months.</p>
+        </div>
+        <Link className="btn btn-accent" to="/expenses?new=1">Add expense</Link>
+      </div>
 
       <div className="dash-kpis">
         <div className="dash-card">
@@ -59,7 +75,7 @@ export default function Dashboard() {
         </div>
         <div className="dash-card">
           <span className="dash-label">Compared with last month</span>
-          <strong className="dash-big">
+          <strong className={`dash-big${diff > 0 ? ' dash-up' : diff < 0 ? ' dash-down' : ''}`}>
             <span aria-hidden="true">{arrow}</span> {formatNpr(Math.abs(diff))}
           </strong>
           <span className="dash-muted">

@@ -78,13 +78,18 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
   }
 
   return (
-    <form className="expense-form" onSubmit={submit}>
-      <div className="snap-grid">
-        <label className="snap-field">
+    <form className="card expense-form" onSubmit={submit}>
+      <div className="card-head">
+        <h3 className="card-title">{expense ? 'Edit expense' : 'New expense'}</h3>
+      </div>
+      <div className="form-grid">
+        <label className="field">
           <span>Amount (NPR)</span>
           <input
             className="input"
             type="number"
+            inputMode="decimal"
+            autoFocus
             step="0.01"
             min="0.01"
             required
@@ -93,7 +98,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
             onChange={set('amount')}
           />
         </label>
-        <label className="snap-field">
+        <label className="field">
           <span>Category</span>
           <select className="input" value={form.category} onChange={set('category')}>
             {CATEGORIES.map((c) => (
@@ -103,7 +108,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
             ))}
           </select>
         </label>
-        <label className="snap-field">
+        <label className="field">
           <span>Merchant</span>
           <input
             className="input"
@@ -113,7 +118,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
           />
         </label>
         <DateInput label="Date" required value={date} onChange={setDate} />
-        <label className="snap-field">
+        <label className="field">
           <span>Payment method</span>
           <input
             className="input"
@@ -122,7 +127,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
             onChange={set('payment_method')}
           />
         </label>
-        <label className="snap-field expense-form-note">
+        <label className="field">
           <span>Note (optional)</span>
           <input
             className="input"
@@ -137,8 +142,8 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
           {mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}
         </p>
       )}
-      <div className="expense-form-actions">
-        <button className="btn" type="button" onClick={onDone} disabled={mutation.isPending}>
+      <div className="form-actions">
+        <button className="btn btn-ghost" type="button" onClick={onDone} disabled={mutation.isPending}>
           Cancel
         </button>
         <button className="btn btn-accent" type="submit" disabled={mutation.isPending}>

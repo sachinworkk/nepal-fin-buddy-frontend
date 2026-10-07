@@ -12,7 +12,7 @@ export default function Landing() {
       {/* Hero */}
       <section className="hero">
         <div className="hero-copy">
-          <span className="hero-eyebrow">Made for Nepal · NPR &amp; BS dates</span>
+          <span className="hero-eyebrow">Made for Nepal</span>
           <h1 className="hero-title">
             Take back control of <em>your financial life</em>
           </h1>
@@ -45,8 +45,7 @@ export default function Landing() {
             <div className="feature-body">
               <h3>Expense Tracking</h3>
               <p>
-                Every confirmed expense in one ledger — from snapped bills to manual entries, in NPR
-                with BS dates.
+                Every confirmed expense in one ledger — from snapped bills to manual entries.
               </p>
             </div>
           </article>
@@ -116,8 +115,13 @@ export default function Landing() {
 
       {/* Sign-up band */}
       <section className="cta-band">
-        <h2>Ready to take control?</h2>
-        <p>Log in and snap your first bill — it takes less than a minute.</p>
+        <div>
+          <h2>Ready to take control?</h2>
+          <p>Create a free account and snap your first bill — it takes less than a minute.</p>
+        </div>
+        <a href="/register" className="btn btn-accent btn-lg">
+          Get started
+        </a>
       </section>
     </div>
   )

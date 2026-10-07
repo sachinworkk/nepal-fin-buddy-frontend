@@ -21,6 +21,7 @@ export interface BillOut {
   vat_amount?: string | null
   total_amount?: string | null
   status: 'extracted' | 'confirmed'
+  prize_enrolled?: boolean
   extraction_confidence?: number | null
   flags: string[]
   has_image: boolean
