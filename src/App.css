@@ -309,6 +309,72 @@ main {
   white-space: pre-wrap;
 }
 
+.md {
+  overflow-wrap: anywhere;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md p,
+.md ul,
+.md ol,
+.md .md-table-wrap {
+  margin: 0 0 var(--sp-2);
+}
+
+.md ul,
+.md ol {
+  padding-left: 1.25em;
+}
+
+.md li {
+  margin: 0;
+}
+
+.md li > p {
+  margin: 0;
+}
+
+.md a {
+  color: var(--accent, inherit);
+  text-decoration: underline;
+}
+
+.md code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 0.9em;
+}
+
+.md-table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.md table {
+  border-collapse: collapse;
+  font-size: inherit;
+}
+
+.md th,
+.md td {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.md th {
+  font-weight: 600;
+}
+
 .citations {
   display: flex;
   flex-wrap: wrap;
