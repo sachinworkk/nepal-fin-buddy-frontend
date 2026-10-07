@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createSession, sendMessage } from '../api/chat'
+import MarkdownMessage from '../components/MarkdownMessage'
 
 const SUGGESTIONS = [
   'How much did I spend this month?',
@@ -102,7 +103,11 @@ function Chat() {
         {messages.map((m, i) => (
           <div key={i} className={`msg msg-${m.role}`}>
             <div className="msg-bubble">
-              <p className="msg-content">{m.content}</p>
+              {m.role === 'assistant' ? (
+                <MarkdownMessage content={m.content} />
+              ) : (
+                <p className="msg-content">{m.content}</p>
+              )}
               {m.citations && m.citations.length > 0 && (
                 <div className="citations">
                   {m.citations.map((c, j) => (
