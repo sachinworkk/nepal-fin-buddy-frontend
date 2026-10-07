@@ -1563,6 +1563,129 @@ main:has(.chat) {
   text-align: center;
 }
 
+/* ── Chat: pending action cards ── */
+.action-cards {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.action-card {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+}
+
+.action-card.is-decided {
+  border-color: var(--border);
+  color: var(--text-2);
+  opacity: 0.8;
+}
+
+.action-card .badge {
+  justify-self: start;
+}
+
+.action-title {
+  margin: 0;
+}
+
+.action-diff {
+  display: grid;
+  gap: var(--sp-1);
+  margin: 0;
+}
+
+.action-diff-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: var(--sp-2);
+  align-items: baseline;
+}
+
+.action-diff dt {
+  color: var(--text-3);
+  font-size: var(--text-xs);
+}
+
+.action-diff dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: baseline;
+  margin: 0;
+}
+
+.action-before {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+.action-after {
+  font-weight: 600;
+}
+
+.action-arrow {
+  color: var(--text-3);
+}
+
+.action-date {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.action-date small {
+  color: var(--text-3);
+  font-size: var(--text-xs);
+}
+
+.action-expense {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.action-expense-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.action-cat {
+  color: var(--text-2);
+  text-transform: capitalize;
+}
+
+.action-amount {
+  font-weight: 600;
+}
+
+.action-buttons {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--text-1);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ══ Settings ═════════════════════════════════════════════ */
 .settings-grid {
   display: grid;

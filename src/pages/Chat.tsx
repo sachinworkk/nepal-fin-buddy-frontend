@@ -1,6 +1,18 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { createSession, sendMessage } from '../api/chat'
+import { useSearchParams } from 'react-router-dom'
+import {
+  createSession,
+  getSession,
+  sendMessage,
+  submitActions,
+  type ChatMessageOut,
+  type Decision,
+  type PendingAction,
+} from '../api/chat'
+import { ApiError } from '../api/client'
 import MarkdownMessage from '../components/MarkdownMessage'
+import PendingActionCard from '../components/PendingActionCard'
 
 const SUGGESTIONS = [
   'How much did I spend this month?',
@@ -12,16 +24,44 @@ interface UiMessage {
   role: 'user' | 'assistant'
   content: string
   citations?: { title: string; snippet: string; chunk_index: number }[]
+  pending_actions?: PendingAction[]
 }
+
+const PENDING_HINT = 'Confirm or cancel the change above first'
+
+const toUi = (m: ChatMessageOut): UiMessage => ({
+  role: m.role,
+  content: m.content,
+  citations: m.citations ?? [],
+  pending_actions: m.pending_actions ?? undefined,
+})
+
+const hasUndecided = (m?: UiMessage) => !!m?.pending_actions?.some((a) => a.decision === null)
 
 function Chat() {
   const [messages, setMessages] = useState<UiMessage[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const sessionId = useRef<string | null>(null)
+  const [deciding, setDeciding] = useState(false)
+  const [params, setParams] = useSearchParams()
+  const qc = useQueryClient()
+  const sessionId = useRef<string | null>(params.get('session'))
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Restore the thread (incl. decided action cards) when opened with ?session=<id>.
+  useEffect(() => {
+    const sid = sessionId.current
+    if (!sid) return
+    let cancelled = false
+    getSession(sid)
+      .then((s) => !cancelled && setMessages(s.messages.map(toUi)))
+      .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)))
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight })
@@ -39,12 +79,67 @@ function Chat() {
     if (sessionId.current) return sessionId.current
     const s = await createSession()
     sessionId.current = s.id
+    setParams({ session: s.id }, { replace: true })
     return s.id
   }
 
+  // An assistant reply may have created, edited or deleted expenses.
+  function refreshData() {
+    void qc.invalidateQueries({ queryKey: ['expenses'] })
+    void qc.invalidateQueries({ queryKey: ['stats'] })
+    void qc.invalidateQueries({ queryKey: ['bills'] })
+  }
+
+  function newChat() {
+    sessionId.current = null
+    setParams({}, { replace: true })
+    setMessages([])
+    setInput('')
+    setError('')
+  }
+
+  async function decide(index: number, decision: Decision) {
+    const sid = sessionId.current
+    const actions = messages[index]?.pending_actions?.filter((a) => a.decision === null)
+    if (!sid || !actions?.length || deciding) return
+    setError('')
+    setDeciding(true)
+    try {
+      const reply = await submitActions(
+        sid,
+        actions.map((a) => ({ interrupt_id: a.interrupt_id, decision })),
+      )
+      const ids = new Set(actions.map((a) => a.interrupt_id))
+      setMessages((m) => [
+        ...m.map((x, i) =>
+          i === index
+            ? {
+                ...x,
+                pending_actions: x.pending_actions?.map((a) => (ids.has(a.interrupt_id) ? { ...a, decision } : a)),
+              }
+            : x,
+        ),
+        toUi(reply),
+      ])
+      refreshData()
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        // Out of sync with the server (e.g. decided elsewhere): reload the thread.
+        setError(e.message)
+        void getSession(sid).then((s) => setMessages(s.messages.map(toUi))).catch(() => {})
+      } else {
+        setError(e instanceof Error ? e.message : String(e))
+      }
+    } finally {
+      setDeciding(false)
+    }
+  }
+
+  const pending = hasUndecided(messages[messages.length - 1])
+
   async function submit(text = input) {
     const content = text.trim()
-    if (!content || busy) return
+    if (!content || busy || pending) return
     setError('')
     setInput('')
     setBusy(true)
@@ -52,12 +147,10 @@ function Chat() {
     try {
       const sid = await ensureSession()
       const reply = await sendMessage(sid, content)
-      setMessages((m) => [
-        ...m,
-        { role: 'assistant', content: reply.content, citations: reply.citations ?? [] },
-      ])
+      setMessages((m) => [...m, toUi(reply)])
+      refreshData()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(e instanceof ApiError && e.status === 409 ? PENDING_HINT : e instanceof Error ? e.message : String(e))
       setMessages((m) => m.filter((x, i) => !(i === m.length - 1 && x.role === 'user')))
       setInput(content)
     } finally {
@@ -79,6 +172,11 @@ function Chat() {
           <h2 className="page-title">Chat</h2>
           <p className="page-sub">Answers grounded in your own bills and documents.</p>
         </div>
+        {messages.length > 0 && (
+          <button className="btn btn-ghost btn-sm" type="button" onClick={newChat} disabled={busy || deciding}>
+            New chat
+          </button>
+        )}
       </div>
       <div className="chat-list" ref={listRef}>
         {messages.length === 0 && (
@@ -93,7 +191,7 @@ function Chat() {
             <p>Ask about your expenses, bills or documents. Try one of these:</p>
             <div className="chat-suggestions">
               {SUGGESTIONS.map((q) => (
-                <button key={q} type="button" className="chat-suggestion" onClick={() => void submit(q)}>
+                <button key={q} type="button" className="chat-suggestion" onClick={() => void submit(q)} disabled={pending}>
                   {q}
                 </button>
               ))}
@@ -117,6 +215,13 @@ function Chat() {
                   ))}
                 </div>
               )}
+              {m.pending_actions && m.pending_actions.length > 0 && (
+                <PendingActionCard
+                  actions={m.pending_actions}
+                  busy={deciding}
+                  onDecide={(d) => void decide(i, d)}
+                />
+              )}
             </div>
           </div>
         ))}
@@ -135,16 +240,16 @@ function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKey}
-          placeholder="Ask a question…"
+          placeholder={pending ? PENDING_HINT : 'Ask a question…'}
           aria-label="Message"
           rows={1}
-          disabled={busy}
+          disabled={busy || pending}
         />
-        <button className="btn btn-accent" onClick={() => void submit()} disabled={busy || !input.trim()}>
+        <button className="btn btn-accent" onClick={() => void submit()} disabled={busy || pending || !input.trim()}>
           Send
         </button>
       </div>
-      <p className="chat-hint">Enter to send · Shift+Enter for a new line</p>
+      <p className="chat-hint">{pending ? PENDING_HINT : 'Enter to send · Shift+Enter for a new line'}</p>
     </div>
   )
 }
