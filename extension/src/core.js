@@ -47,32 +47,47 @@ globalThis.NFB = (() => {
     el.dispatchEvent(new Event('change', { bubbles: true }))
   }
 
+  function setSelectValue(el, value) {
+    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set
+    setter.call(el, value)
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
   // Small dismissible message at the bottom of the page.
   function showBanner(lines) {
     const box = document.createElement('div')
     box.setAttribute('role', 'status')
     box.style.cssText =
       'position:fixed;z-index:2147483647;left:12px;right:12px;bottom:12px;max-width:420px;margin:auto;' +
-      'padding:12px 14px;border-radius:10px;background:#141414;color:#fff;font:14px/1.4 system-ui,sans-serif;' +
-      'box-shadow:0 4px 16px rgba(0,0,0,.3)'
+      'padding:12px 14px 14px;border:1px solid #e5e7eb;border-left:4px solid #2563eb;border-radius:12px;' +
+      'background:#fff;color:#1f2937;font:14px/1.4 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.15)'
+    const header = document.createElement('div')
+    header.style.cssText = 'display:flex;align-items:center;justify-content:space-between'
     const title = document.createElement('strong')
     title.textContent = 'Nepal Fin Buddy'
-    box.appendChild(title)
+    title.style.color = '#1d4ed8'
+    const close = document.createElement('button')
+    close.textContent = '×'
+    close.setAttribute('aria-label', 'Dismiss')
+    close.style.cssText =
+      'border:0;background:none;color:#6b7280;font:22px/1 system-ui,sans-serif;cursor:pointer;padding:0 4px'
+    close.onclick = () => box.remove()
+    header.append(title, close)
+    box.appendChild(header)
     for (const l of lines) {
       const p = document.createElement('div')
       p.textContent = l
+      p.style.marginTop = '6px'
+      if (/^(Couldn't find|Pick the bill date)/.test(l)) p.style.color = '#b45309'
       box.appendChild(p)
     }
-    const close = document.createElement('button')
-    close.textContent = 'Dismiss'
-    close.style.cssText = 'margin-top:8px;padding:6px 12px;border:0;border-radius:6px;font:inherit'
-    close.onclick = () => box.remove()
-    box.appendChild(close)
     document.body.appendChild(box)
     return box
   }
 
-  const util = { waitFor, setInputValue, showBanner }
+  const util = { waitFor, setInputValue, setSelectValue, sleep, showBanner }
 
   return {
     util,
