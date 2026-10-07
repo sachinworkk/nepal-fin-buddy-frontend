@@ -20,7 +20,7 @@ function Footer({ wide }: { wide?: boolean }) {
     <footer className="footer">
       <div className={`container${wide ? ' container-wide' : ''} footer-inner`}>
         <strong>Nepal Fin Buddy</strong>
-        <span>Personal finance, built for Nepal · NPR &amp; BS dates supported</span>
+        <span>Personal finance, built for Nepal</span>
       </div>
     </footer>
   )
