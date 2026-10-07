@@ -15,6 +15,22 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   cheque: 'Cheque',
 }
 
+/** Tax-invoice details of a manual expense. Vendor name, date, total and payment method
+ * come from the expense itself; the backend stores them as an image-less bill. */
+export interface ExpenseBill {
+  vendor_pan?: string | null
+  bill_number?: string | null
+  subtotal?: string | null
+  discount?: string | null
+  taxable_amount?: string | null
+  vat_amount?: string | null
+}
+
+export interface ExpenseBillOut extends ExpenseBill {
+  vendor_name?: string | null
+  total_amount?: string | null
+}
+
 export interface ExpenseOut {
   id: string
   amount: string
@@ -24,6 +40,7 @@ export interface ExpenseOut {
   payment_method?: string | null
   source: 'manual' | 'chat' | 'bill'
   bill_id?: string | null
+  bill?: ExpenseBillOut | null
   expense_date_ad: string
   expense_date_bs: string
   created_at: string
@@ -38,6 +55,8 @@ export interface ExpenseIn {
   payment_method?: PaymentMethod | null
   expense_date?: string
   expense_date_bs?: string
+  /** Omit (or send empty) for an expense without a bill. */
+  bill?: ExpenseBill | null
 }
 
 export const createExpense = (body: ExpenseIn) => post<ExpenseOut>('/expenses', body)

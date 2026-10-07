@@ -5,6 +5,7 @@ import {
   createExpense,
   updateExpense,
   type Category,
+  type ExpenseBill,
   type ExpenseIn,
   type ExpenseOut,
   type PaymentMethod,
@@ -12,6 +13,16 @@ import {
 import { loadDateMode } from '../lib/dates'
 import { usePaymentMethods } from '../lib/usePaymentMethods'
 import DateInput, { type DateValue } from './DateInput'
+
+const emptyBill = {
+  vendor_pan: '',
+  bill_number: '',
+  subtotal: '',
+  discount: '',
+  taxable_amount: '',
+  vat_amount: '',
+}
+type BillForm = typeof emptyBill
 
 const emptyForm = {
   amount: '',
@@ -26,6 +37,29 @@ function initialDate(e?: ExpenseOut): DateValue {
   if (!e) return today()
   return loadDateMode() === 'bs' ? { bs: e.expense_date_bs } : { ad: e.expense_date_ad }
 }
+
+function initialBill(e?: ExpenseOut): BillForm {
+  const b = e?.bill
+  if (!b) return emptyBill
+  const out = { ...emptyBill }
+  for (const k of Object.keys(emptyBill) as (keyof BillForm)[]) out[k] = b[k] ?? ''
+  return out
+}
+
+/** The filled-in bill fields, or null when none are (the expense has no bill). */
+function billPayload(bill: BillForm): ExpenseBill | null {
+  const entries = Object.entries(bill)
+    .map(([k, v]) => [k, v.trim()] as const)
+    .filter(([, v]) => v !== '')
+  return entries.length ? Object.fromEntries(entries) : null
+}
+
+const BILL_AMOUNTS: [keyof BillForm, string][] = [
+  ['subtotal', 'Subtotal'],
+  ['discount', 'Discount'],
+  ['taxable_amount', 'Taxable amount'],
+  ['vat_amount', 'VAT amount'],
+]
 
 /** Create form, or edit form when `expense` is given. */
 export default function ExpenseForm({ onDone, expense }: { onDone: () => void; expense?: ExpenseOut }) {
@@ -42,7 +76,10 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
         }
       : emptyForm,
   )
+  const [bill, setBill] = useState<BillForm>(() => initialBill(expense))
   const [date, setDate] = useState<DateValue>(() => initialDate(expense))
+  // A scanned bill's details are fixed once confirmed; only manual/chat expenses edit them here.
+  const billEditable = expense?.source !== 'bill'
 
   const mutation = useMutation({
     mutationFn: (body: typeof emptyForm) => {
@@ -54,6 +91,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
         payment_method: body.payment_method || undefined,
         expense_date: date.ad,
         expense_date_bs: date.bs,
+        bill: billEditable ? billPayload(bill) ?? undefined : undefined,
       }
       return expense
         ? updateExpense(expense.id, {
@@ -62,18 +100,22 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
             merchant: body.merchant,
             note: body.note,
             payment_method: body.payment_method || null,
+            ...(billEditable && { bill: billPayload(bill) }),
           })
         : createExpense(payload)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['expenses'] })
       void queryClient.invalidateQueries({ queryKey: ['stats'] })
+      void queryClient.invalidateQueries({ queryKey: ['bills'] })
       onDone()
     },
   })
 
   const set = (k: keyof typeof emptyForm) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
+  const setB = (k: keyof BillForm) => (e: { target: { value: string } }) =>
+    setBill((b) => ({ ...b, [k]: e.target.value }))
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,7 +154,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
           </select>
         </label>
         <label className="field">
-          <span>Merchant</span>
+          <span>Merchant / vendor</span>
           <input
             className="input"
             placeholder="e.g. Bhatbhateni"
@@ -142,6 +184,66 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
           />
         </label>
       </div>
+
+      {billEditable ? (
+        <details className="bill-details" open={!!expense?.bill}>
+          <summary>
+            Bill details <span className="field-hint">optional · for VAT bills and the prize lottery</span>
+          </summary>
+          <div className="form-grid">
+            <label className="field">
+              <span>Vendor PAN / VAT no.</span>
+              <input
+                className="input"
+                inputMode="numeric"
+                pattern="\d{9}"
+                title="9-digit PAN/VAT number"
+                maxLength={9}
+                placeholder="e.g. 301234567"
+                value={bill.vendor_pan}
+                onChange={setB('vendor_pan')}
+              />
+            </label>
+            <label className="field">
+              <span>Bill / invoice number</span>
+              <input
+                className="input"
+                maxLength={100}
+                placeholder="e.g. INV-2083-0142"
+                value={bill.bill_number}
+                onChange={setB('bill_number')}
+              />
+            </label>
+            {BILL_AMOUNTS.map(([k, label]) => (
+              <label key={k} className="field">
+                <span>{label}</span>
+                <input
+                  className="input"
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={bill[k]}
+                  onChange={setB(k)}
+                />
+              </label>
+            ))}
+          </div>
+          <p className="field-hint bill-details-hint">
+            The vendor, bill date, total and payment method are taken from the fields above.
+          </p>
+        </details>
+      ) : (
+        expense?.bill && (
+          <p className="field-hint bill-details-hint">
+            From a scanned bill
+            {expense.bill.bill_number && ` · Bill no. ${expense.bill.bill_number}`}
+            {expense.bill.vendor_pan && ` · PAN ${expense.bill.vendor_pan}`}
+          </p>
+        )
+      )}
+
       {mutation.isError && (
         <p className="form-error">
           {mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}
