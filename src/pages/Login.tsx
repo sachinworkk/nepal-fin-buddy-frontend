@@ -26,31 +26,41 @@ export default function Login({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="login-wrap">
+      <a href="/" className="brand">
+        <span className="brand-mark" aria-hidden>
+          ₹
+        </span>
+        Nepal Fin Buddy
+      </a>
       <form className="login" onSubmit={(e) => void submit(e)}>
         <div className="login-head">
           <h2>Welcome back</h2>
           <p>Log in to take back control of your financial life.</p>
         </div>
-        <div className="field">
+        <label className="field">
+          <span>Email</span>
           <input
             className="input"
             type="email"
-            placeholder="Email"
+            autoComplete="email"
+            autoFocus
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
-        <div className="field">
+        </label>
+        <label className="field">
+          <span>Password</span>
           <input
             className="input"
             type="password"
-            placeholder="Password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </div>
+        </label>
         {error && <p className="form-error">{error}</p>}
         <button type="submit" className="btn btn-accent" disabled={busy}>
           {busy ? 'Logging in…' : 'Log in'}
