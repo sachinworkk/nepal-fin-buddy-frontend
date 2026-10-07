@@ -48,8 +48,17 @@ function handoffRows(h: PrizeHandoffOut): { key: string; label: string; value: s
   return rows.filter((r) => r.value)
 }
 
+// Mobile browsers can't run the prefill extension, so they get the plain portal URL.
+function isMobileWeb(): boolean {
+  const uaData = (navigator as Navigator & { userAgentData?: { mobile: boolean } }).userAgentData
+  if (uaData) return uaData.mobile
+  // iPadOS reports a desktop Mac user agent; touch support gives it away.
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+}
+
 /** Fragment for the optional prefill extension; inert (and never sent to a server) without it. */
 function portalUrlWithPrefill(h: PrizeHandoffOut): string {
+  if (isMobileWeb()) return h.portal_url
   const f = h.fields
   const json = JSON.stringify({
     bill_number: f.bill_number,
