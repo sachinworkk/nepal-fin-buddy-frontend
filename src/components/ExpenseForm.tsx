@@ -1,22 +1,25 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import {
-  CATEGORIES,
   createExpense,
   updateExpense,
   type Category,
   type ExpenseIn,
   type ExpenseOut,
 } from '../api/expenses'
+import { lookupLabel, useCategories, usePaymentMethods } from '../api/lookups'
 import { loadDateMode } from '../lib/dates'
 import DateInput, { type DateValue } from './DateInput'
+import PaymentMethodPicker from './PaymentMethodPicker'
 
 const emptyForm = {
   amount: '',
-  category: 'other' as Category,
+  // Empty until the lookups load; the first loaded option is used (see `category` below).
+  category: '' as Category,
   merchant: '',
   note: '',
-  payment_method: '',
+  // undefined = untouched (new entries default to the first method); null = cleared by the user.
+  payment_method: undefined as string | null | undefined,
 }
 const today = (): DateValue => ({ ad: new Date().toISOString().slice(0, 10) })
 
@@ -35,20 +38,30 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
           category: expense.category as Category,
           merchant: expense.merchant ?? '',
           note: expense.note ?? '',
-          payment_method: expense.payment_method ?? '',
+          payment_method: expense.payment_method ?? null,
         }
       : emptyForm,
   )
+  const categories = useCategories()
+  const paymentMethods = usePaymentMethods()
+  // Manual entries default to the first loaded option until the user picks one.
+  const category = form.category || categories.data?.[0]?.slug || ''
+  const paymentMethod =
+    form.payment_method !== undefined
+      ? form.payment_method
+      : expense
+        ? null
+        : (paymentMethods.data?.[0]?.code ?? null)
   const [date, setDate] = useState<DateValue>(() => initialDate(expense))
 
   const mutation = useMutation({
     mutationFn: (body: typeof emptyForm) => {
       const payload: ExpenseIn = {
         amount: body.amount,
-        category: body.category,
+        category,
         merchant: body.merchant || undefined,
         note: body.note || undefined,
-        payment_method: body.payment_method || undefined,
+        payment_method: paymentMethod || undefined,
         expense_date: date.ad,
         expense_date_bs: date.bs,
       }
@@ -58,7 +71,6 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
             // Allow clearing optional text fields when editing.
             merchant: body.merchant,
             note: body.note,
-            payment_method: body.payment_method,
           })
         : createExpense(payload)
     },
@@ -100,10 +112,10 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
         </label>
         <label className="field">
           <span>Category</span>
-          <select className="input" value={form.category} onChange={set('category')}>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c[0].toUpperCase() + c.slice(1)}
+          <select className="input" value={category} onChange={set('category')}>
+            {(categories.data ?? []).map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {lookupLabel(c)}
               </option>
             ))}
           </select>
@@ -118,15 +130,10 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
           />
         </label>
         <DateInput label="Date" required value={date} onChange={setDate} />
-        <label className="field">
-          <span>Payment method</span>
-          <input
-            className="input"
-            placeholder="e.g. cash, eSewa, card"
-            value={form.payment_method}
-            onChange={set('payment_method')}
-          />
-        </label>
+        <PaymentMethodPicker
+          value={paymentMethod}
+          onChange={(v) => setForm((f) => ({ ...f, payment_method: v }))}
+        />
         <label className="field">
           <span>Note (optional)</span>
           <input

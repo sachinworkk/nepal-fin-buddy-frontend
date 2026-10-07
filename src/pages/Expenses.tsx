@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { listBills } from '../api/bills'
-import { CATEGORIES, deleteExpense, listExpenses, type ExpenseOut } from '../api/expenses'
+import { deleteExpense, listExpenses, type ExpenseOut } from '../api/expenses'
+import { categoryLabel, lookupLabel, useCategories } from '../api/lookups'
 import DateInput, { type DateValue } from '../components/DateInput'
 import ExpenseForm from '../components/ExpenseForm'
 import { formatNpr, useBsConvert, useDebounced } from '../lib/dates'
@@ -31,6 +32,7 @@ function useAdDate(v: DateValue) {
 
 export default function Expenses() {
   const qc = useQueryClient()
+  const categories = useCategories()
   const [params, setParams] = useSearchParams()
   const category = params.get('category') ?? ''
   const page = Math.max(1, Number(params.get('page')) || 1)
@@ -113,9 +115,9 @@ export default function Expenses() {
           <span>Category</span>
           <select className="input" value={category} onChange={(e) => setParam('category', e.target.value)}>
             <option value="">All categories</option>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c[0].toUpperCase() + c.slice(1)}
+            {(categories.data ?? []).map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {lookupLabel(c)}
               </option>
             ))}
           </select>
@@ -201,7 +203,7 @@ export default function Expenses() {
                   )}
                 </span>
               </span>
-              <span className="expenses-cat">{e.category}</span>
+              <span className="expenses-cat">{categoryLabel(categories.data, e.category)}</span>
               <span className="expenses-date">
                 <span>{e.expense_date_bs}</span>
                 <small>{fmtAd(e.expense_date_ad)}</small>

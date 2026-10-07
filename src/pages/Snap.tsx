@@ -1,7 +1,10 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { confirmBill, updateBill, uploadBill, type BillItem, type BillOut } from '../api/bills'
-import { CATEGORIES, type Category } from '../api/expenses'
+import { useQueryClient } from '@tanstack/react-query'
+import { type Category } from '../api/expenses'
+import { lookupLabel, useCategories } from '../api/lookups'
+import PaymentMethodPicker from '../components/PaymentMethodPicker'
 import { formatNpr } from '../lib/dates'
 
 type Stage = 'upload' | 'editing' | 'confirmed'
@@ -18,6 +21,7 @@ interface Draft {
   vat_amount: string
   total_amount: string
   category: Category
+  payment_method: string | null
   items: BillItem[]
 }
 
@@ -33,7 +37,9 @@ function toDraft(b: BillOut): Draft {
     discount: b.discount ?? '',
     vat_amount: b.vat_amount ?? '',
     total_amount: b.total_amount ?? '',
-    category: 'groceries',
+    // Empty until chosen; the first loaded category is used as the default.
+    category: '',
+    payment_method: b.payment_method ?? null,
     items: b.items.map((i) => ({ ...i })),
   }
 }
@@ -57,6 +63,9 @@ export default function Snap() {
   const [error, setError] = useState('')
   const [draft, setDraft] = useState<Draft | null>(null)
   const [dragging, setDragging] = useState(false)
+  const queryClient = useQueryClient()
+  const categories = useCategories()
+  const category = draft?.category || categories.data?.[0]?.slug || ''
   const inputRef = useRef<HTMLInputElement>(null)
 
   async function pick(f: File | null) {
@@ -75,7 +84,7 @@ export default function Snap() {
     }
   }
 
-  function set(key: keyof Draft, value: string) {
+  function set(key: 'category' | keyof Omit<Draft, 'items' | 'payment_method'>, value: string) {
     setDraft((d) => (d ? { ...d, [key]: value } : d))
   }
 
@@ -102,9 +111,13 @@ export default function Snap() {
       setError('Total amount and Date (AD) are required to confirm.')
       return
     }
+    if (!category) {
+      setError('Categories have not loaded yet — try again in a moment.')
+      return
+    }
     setBusy(true)
     try {
-      const patch: Partial<BillOut> = {
+      const patch: Omit<Partial<BillOut>, 'payment_method'> = {
         vendor_name: draft.vendor_name || null,
         vendor_pan: draft.vendor_pan || null,
         bill_number: draft.bill_number || null,
@@ -118,10 +131,14 @@ export default function Snap() {
       await updateBill(draft.id, patch)
       await confirmBill(draft.id, {
         ...patch,
-        category: draft.category,
+        category,
+        ...(draft.payment_method ? { payment_method: draft.payment_method } : {}),
         total_amount: draft.total_amount,
         bill_date_ad: draft.bill_date_ad,
       })
+      void queryClient.invalidateQueries({ queryKey: ['expenses'] })
+      void queryClient.invalidateQueries({ queryKey: ['stats'] })
+      void queryClient.invalidateQueries({ queryKey: ['bills'] })
       setStage('confirmed')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -212,14 +229,18 @@ export default function Snap() {
               <span>Category</span>
               <select
                 className="input"
-                value={draft.category}
+                value={category}
                 onChange={(e) => set('category', e.target.value)}
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c[0].toUpperCase() + c.slice(1)}</option>
+                {(categories.data ?? []).map((c) => (
+                  <option key={c.slug} value={c.slug}>{lookupLabel(c)}</option>
                 ))}
               </select>
             </label>
+            <PaymentMethodPicker
+              value={draft.payment_method}
+              onChange={(v) => setDraft((d) => (d ? { ...d, payment_method: v } : d))}
+            />
           </div>
 
           <h3 className="snap-items-head">Items</h3>
