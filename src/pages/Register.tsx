@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { register, type Language } from '../api/auth'
+import { register } from '../api/auth'
 import { ApiError } from '../api/client'
 
 export default function Register({ onDone }: { onDone: () => void }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [lang, setLang] = useState<Language>('en')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -21,7 +20,6 @@ export default function Register({ onDone }: { onDone: () => void }) {
         email,
         password,
         full_name: fullName.trim() || undefined,
-        preferred_language: lang,
       })
       localStorage.setItem('token', t.access_token)
       onDone()
@@ -67,11 +65,6 @@ export default function Register({ onDone }: { onDone: () => void }) {
             autoComplete="new-password" minLength={8} required
             value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
-        <fieldset className="lang-pick">
-          <legend>Preferred language</legend>
-          <label><input type="radio" name="lang" checked={lang === 'en'} onChange={() => setLang('en')} /> English</label>
-          <label><input type="radio" name="lang" checked={lang === 'ne'} onChange={() => setLang('ne')} /> नेपाली</label>
-        </fieldset>
         {error && <p className="form-error">{error}</p>}
         <button type="submit" className="btn btn-accent" disabled={busy}>
           {busy ? 'Creating account…' : 'Create account'}

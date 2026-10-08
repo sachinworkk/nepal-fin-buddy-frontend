@@ -136,7 +136,7 @@ export default function Expenses() {
           <input
             className="input"
             type="search"
-            placeholder="Merchant or note"
+            placeholder="Search name or note…"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -194,7 +194,7 @@ export default function Expenses() {
       {expenses.length > 0 && (
         <div className="expenses-card">
           <div className="expenses-head">
-            <span>Merchant</span>
+            <span>Paid to</span>
             <span>Category</span>
             <span>Date</span>
             <span className="expenses-amount">Amount</span>

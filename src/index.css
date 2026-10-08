@@ -32,6 +32,7 @@
   --accent-hover: #c81f30;
   --accent-fg: #ffffff;
   --accent-soft: #fdf0f1;     /* tinted wash for hovers/highlights */
+  --accent-border: #f5d3d7;   /* soft red-tint border */
   --ink: #141414;             /* dark CTA / footer band */
   --ink-hover: #2c2c2e;
   --focus-ring: 2px solid #141414;
