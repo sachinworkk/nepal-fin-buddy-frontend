@@ -15,6 +15,7 @@ import {
   type PrizeHandoffOut,
 } from '../api/prize'
 import { copyText } from '../lib/clipboard'
+import { bsLabelOfAd } from '../lib/bsCalendar'
 import { fmtAd, formatNpr } from '../lib/dates'
 import { loadPrizeProfile, savePrizeProfile } from '../lib/prizeProfile'
 import { validateAddress, validateMobile, validateName } from '../lib/prizeRules'
@@ -35,12 +36,17 @@ function DaysBadge({ days }: { days: number | null }) {
   return <span className={`badge ${days < 0 ? 'badge-fail' : days <= URGENT_DAYS ? 'badge-warn' : 'badge-muted'}`}>{text}</span>
 }
 
-function handoffRows(h: PrizeHandoffOut): { key: string; label: string; value: string }[] {
+function handoffRows(h: PrizeHandoffOut): { key: string; label: string; value: string; hint?: string }[] {
   const f = h.fields
   const rows = [
     { key: 'bill_number', label: 'Bill number', value: f.bill_number },
     { key: 'seller_pan_no', label: 'Seller PAN', value: f.seller_pan_no },
-    { key: 'bill_date', label: 'Bill date', value: f.bill_date },
+    {
+      key: 'bill_date',
+      label: 'Bill date (AD)',
+      value: f.bill_date,
+      hint: `IRD accepts the English date only: ${fmtAd(f.bill_date)}${bsLabelOfAd(f.bill_date) ? ` = ${bsLabelOfAd(f.bill_date)}` : ''}`,
+    },
     { key: 'billed_total_amount', label: 'Total amount', value: f.billed_total_amount },
     { key: 'payment_method', label: 'Payment method', value: f.payment_method },
     { key: 'name', label: 'Name', value: f.name },
@@ -166,6 +172,7 @@ function HandoffSheet({
             <div key={r.key} className="hand-row">
               <span className="hand-label">{r.label}</span>
               <strong className="hand-value">{r.value}</strong>
+              {r.hint && <small className="date-preview">{r.hint}</small>}
               <button
                 type="button"
                 className="btn btn-ghost btn-sm hand-copy"
@@ -476,7 +483,7 @@ export default function PrizeHandoff() {
                     <span className="list-main">
                       <strong>{vendorOf(en.bill_id) ?? `Bill ${en.bill_number || '—'}`}</strong>
                       <small>
-                        Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)}
+                        Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)} (AD)
                       </small>
                     </span>
                     <span className="list-end">
@@ -567,7 +574,7 @@ export default function PrizeHandoff() {
                     <span className="list-main">
                       <strong>{b.vendor_name || 'Untitled vendor'}</strong>
                       <small>
-                        Bill {b.bill_number} · PAN {b.seller_pan_no} · {fmtAd(b.bill_date)}
+                        Bill {b.bill_number} · PAN {b.seller_pan_no} · {fmtAd(b.bill_date)} (AD)
                       </small>
                     </span>
                     <span className="list-end">
@@ -592,7 +599,7 @@ export default function PrizeHandoff() {
                     <span className="list-main">
                       <strong>{vendorOf(en.bill_id) ?? `Bill ${en.bill_number || '—'}`}</strong>
                       <small>
-                        Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)} · {formatNpr(en.billed_total_amount)}
+                        Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)} (AD) · {formatNpr(en.billed_total_amount)}
                       </small>
                     </span>
                     <span className="list-end">

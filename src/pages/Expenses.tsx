@@ -5,29 +5,17 @@ import { listBills } from '../api/bills'
 import { CATEGORIES, deleteExpense, listExpenses, type ExpenseOut } from '../api/expenses'
 import DateInput, { type DateValue } from '../components/DateInput'
 import ExpenseForm from '../components/ExpenseForm'
-import { formatNpr, useBsConvert, useDebounced } from '../lib/dates'
+import { resolveAd } from '../lib/bsCalendar'
+import { fmtAd, formatNpr, useDebounced } from '../lib/dates'
 import { usePaymentMethods } from '../lib/usePaymentMethods'
 
 const PAGE_SIZE = 15
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
-function fmtAd(iso: string) {
-  const d = new Date(iso)
-  return Number.isNaN(d.getTime())
-    ? iso
-    : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
 const SOURCE_LABEL: Record<ExpenseOut['source'], string> = {
   manual: 'Manual',
   chat: 'Chat',
   bill: 'Bill',
-}
-
-/** Resolve a DateInput value to an AD ISO date (BS goes through /dates/convert). */
-function useAdDate(v: DateValue) {
-  const conv = useBsConvert(v.bs ? { bs: v.bs } : null)
-  return v.ad || conv.data?.ad || undefined
 }
 
 export default function Expenses() {
@@ -46,8 +34,8 @@ export default function Expenses() {
   const [from, setFrom] = useState<DateValue>({})
   const [to, setTo] = useState<DateValue>({})
   const q = useDebounced(search.trim(), 400)
-  const dateFrom = useAdDate(from)
-  const dateTo = useAdDate(to)
+  const dateFrom = resolveAd(from)
+  const dateTo = resolveAd(to)
 
   const setParam = (k: string, v: string) =>
     setParams((p) => {

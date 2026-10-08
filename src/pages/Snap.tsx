@@ -3,7 +3,9 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { confirmBill, updateBill, uploadBill, type BillItem, type BillOut } from '../api/bills'
 import { CATEGORIES, type Category } from '../api/expenses'
-import { formatNpr } from '../lib/dates'
+import DateInput, { type DateValue } from '../components/DateInput'
+import { adToBs, formatBs, parseBs, resolveAd } from '../lib/bsCalendar'
+import { formatNpr, loadDateMode } from '../lib/dates'
 
 type Stage = 'upload' | 'editing' | 'confirmed'
 
@@ -12,8 +14,8 @@ interface Draft {
   vendor_name: string
   vendor_pan: string
   bill_number: string
-  bill_date_ad: string
-  bill_date_bs_raw: string
+  date: DateValue
+  printed_bs: string
   subtotal: string
   discount: string
   vat_amount: string
@@ -22,14 +24,24 @@ interface Draft {
   items: BillItem[]
 }
 
+/** Initial date in the user's preferred calendar; the printed BS date wins when it parses. */
+function initialDate(b: BillOut): DateValue {
+  const printed = b.bill_date_bs_raw ? parseBs(b.bill_date_bs_raw) : null
+  if (loadDateMode() === 'bs') {
+    const bs = printed ?? (b.bill_date_ad ? adToBs(b.bill_date_ad) : null)
+    if (bs) return { bs: formatBs(bs) }
+  }
+  return b.bill_date_ad ? { ad: b.bill_date_ad } : {}
+}
+
 function toDraft(b: BillOut): Draft {
   return {
     id: b.id,
     vendor_name: b.vendor_name ?? '',
     vendor_pan: b.vendor_pan ?? '',
     bill_number: b.bill_number ?? '',
-    bill_date_ad: b.bill_date_ad ?? '',
-    bill_date_bs_raw: b.bill_date_bs_raw ?? '',
+    date: initialDate(b),
+    printed_bs: b.bill_date_bs_raw ?? '',
     subtotal: b.subtotal ?? '',
     discount: b.discount ?? '',
     vat_amount: b.vat_amount ?? '',
@@ -39,12 +51,11 @@ function toDraft(b: BillOut): Draft {
   }
 }
 
-const FIELDS: { key: 'vendor_name' | 'vendor_pan' | 'bill_number' | 'bill_date_ad'
+const FIELDS: { key: 'vendor_name' | 'vendor_pan' | 'bill_number'
   | 'subtotal' | 'discount' | 'vat_amount' | 'total_amount'; label: string; type?: string; numeric?: boolean }[] = [
   { key: 'vendor_name', label: 'Vendor' },
   { key: 'vendor_pan', label: 'Vendor PAN' },
   { key: 'bill_number', label: 'Bill number' },
-  { key: 'bill_date_ad', label: 'Date (AD)', type: 'date' },
   { key: 'subtotal', label: 'Subtotal', numeric: true },
   { key: 'discount', label: 'Discount', numeric: true },
   { key: 'vat_amount', label: 'VAT amount', numeric: true },
@@ -77,7 +88,7 @@ export default function Snap() {
     }
   }
 
-  function set(key: keyof Draft, value: string) {
+  function set(key: Exclude<keyof Draft, 'date' | 'items'>, value: string) {
     setDraft((d) => (d ? { ...d, [key]: value } : d))
   }
 
@@ -100,8 +111,9 @@ export default function Snap() {
   async function confirm() {
     if (!draft || busy) return
     setError('')
-    if (!draft.total_amount || !draft.bill_date_ad) {
-      setError('Total amount and Date (AD) are required to confirm.')
+    const dateAd = resolveAd(draft.date)
+    if (!draft.total_amount || !dateAd) {
+      setError('Total amount and a valid bill date are required to confirm.')
       return
     }
     setBusy(true)
@@ -110,7 +122,7 @@ export default function Snap() {
         vendor_name: draft.vendor_name || null,
         vendor_pan: draft.vendor_pan || null,
         bill_number: draft.bill_number || null,
-        bill_date_ad: draft.bill_date_ad || null,
+        bill_date_ad: dateAd,
         subtotal: draft.subtotal || null,
         discount: draft.discount || null,
         vat_amount: draft.vat_amount || null,
@@ -118,11 +130,13 @@ export default function Snap() {
         items: draft.items,
       }
       await updateBill(draft.id, patch)
+      // The backend takes exactly one calendar and stores the AD date plus the BS string.
+      const { bill_date_ad: _ad, ...rest } = patch
       await confirmBill(draft.id, {
-        ...patch,
+        ...rest,
         category: draft.category,
         total_amount: draft.total_amount,
-        bill_date_ad: draft.bill_date_ad,
+        ...(draft.date.bs ? { bill_date_bs: draft.date.bs } : { bill_date_ad: dateAd }),
       })
       void qc.invalidateQueries({ queryKey: ['expenses'] })
       void qc.invalidateQueries({ queryKey: ['stats'] })
@@ -213,6 +227,15 @@ export default function Snap() {
                 />
               </label>
             ))}
+            <div>
+              <DateInput
+                label="Bill date"
+                required
+                value={draft.date}
+                onChange={(date) => setDraft((d) => (d ? { ...d, date } : d))}
+              />
+              {draft.printed_bs && <small className="date-preview">Printed on bill: {draft.printed_bs} BS</small>}
+            </div>
             <label className="field">
               <span>Category</span>
               <select

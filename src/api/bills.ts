@@ -39,5 +39,11 @@ export const updateBill = (billId: string, body: Partial<BillOut>) =>
 
 export const confirmBill = (
   billId: string,
-  body: Partial<BillOut> & { category: Category; total_amount: string },
+  body: Partial<Omit<BillOut, 'bill_date_ad'>> & {
+    category: Category
+    total_amount: string
+    /** Exactly one of bill_date_ad / bill_date_bs. */
+    bill_date_ad?: string
+    bill_date_bs?: string
+  },
 ) => post<BillOut>(`/bills/${billId}/confirm`, body)
