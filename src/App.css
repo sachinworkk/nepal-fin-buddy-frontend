@@ -1317,7 +1317,33 @@ main:has(.chat) {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  padding: var(--sp-5) 0;
+  padding: var(--sp-5) var(--sp-4) var(--sp-5) 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.chat-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-list::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.chat-list::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+  background-clip: content-box;
+}
+
+.chat-list::-webkit-scrollbar-button {
+  display: none;
 }
 
 .chat-empty {
