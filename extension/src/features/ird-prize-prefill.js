@@ -6,6 +6,11 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+// "23 Sep 2026" from "2026-09-23" — same format as the app's fmtAd.
+const fmtAd = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '')
+  return m ? `${+m[3]} ${MONTHS[+m[2] - 1].slice(0, 3)} ${m[1]}` : iso
+}
 
 // Drives the portal's calendar popover: year select, month select, then the day button (aria-label
 // "October 1, 2026"). Returns false when the date isn't selectable (e.g. year not offered).
@@ -50,6 +55,14 @@ NFB.register({
 
     // company_website is deliberately absent: on the portal it is a hidden honeypot field.
     const NAMES = ['bill_number', 'seller_pan_no', 'billed_total_amount', 'name', 'address', 'mobile_number']
+    const LABELS = {
+      bill_number: 'bill number',
+      seller_pan_no: 'seller PAN',
+      billed_total_amount: 'total amount',
+      name: 'name',
+      address: 'address',
+      mobile_number: 'mobile number',
+    }
 
     const isVisible = (el) => {
       if (el.tabIndex === -1 || el.readOnly || el.disabled) return false
@@ -73,12 +86,17 @@ NFB.register({
       } else missing.push(name)
     }
 
-    const lines = [`Filled ${filled.length} field${filled.length === 1 ? '' : 's'}.`]
-    if (datePicked) lines.push(`Bill date set to ${handoff.bill_date} (English/AD) — please double-check it.`)
-    else if (handoff.bill_date) lines.push(`Pick the bill date yourself, in English (AD) — IRD does not accept BS: ${handoff.bill_date}`)
-    if (handoff.payment_method) lines.push(`Payment method: ${handoff.payment_method}`)
-    if (missing.length) lines.push(`Couldn't find: ${missing.join(', ')} — copy it from the app.`)
-    lines.push('Then complete the security check and submit.')
+    const lines = [`Filled ${filled.length} field${filled.length === 1 ? '' : 's'} with your bill details.`]
+    if (datePicked) lines.push(`Bill date is set to ${fmtAd(handoff.bill_date)} (AD) — please give it a quick double-check.`)
+    else if (handoff.bill_date)
+      lines.push(`Couldn't set the bill date automatically — please pick ${fmtAd(handoff.bill_date)} in the calendar (English/AD only).`)
+    if (handoff.payment_method)
+      lines.push(`Payment method isn't filled in — remember to select "${handoff.payment_method}".`)
+    if (missing.length) {
+      const names = missing.map((n) => LABELS[n] ?? n).join(', ')
+      lines.push(`Couldn't find: ${names} — please copy ${missing.length === 1 ? 'it' : 'those'} from the app.`)
+    }
+    lines.push('Finally, complete the security check and submit.')
     util.showBanner(lines)
   },
 })

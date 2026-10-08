@@ -51,10 +51,17 @@ globalThis.NFB = (() => {
   function showBanner(lines) {
     const box = document.createElement('div')
     box.setAttribute('role', 'status')
-    box.style.cssText =
-      'position:fixed;z-index:2147483647;left:12px;right:12px;bottom:12px;max-width:420px;margin:auto;' +
-      'padding:12px 14px;border-radius:10px;background:#141414;color:#fff;font:14px/1.4 system-ui,sans-serif;' +
-      'box-shadow:0 4px 16px rgba(0,0,0,.3)'
+    box.className = 'nfb-banner'
+    const style = document.createElement('style')
+    style.textContent =
+      '.nfb-banner{position:fixed;z-index:2147483647;left:12px;right:12px;bottom:12px;max-width:420px;margin:auto;' +
+      'padding:12px 14px;background:#fff;color:#141414;border:1px solid #ececec;border-radius:10px;' +
+      'box-shadow:0 4px 16px rgba(20,20,20,.08);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}' +
+      '.nfb-banner strong{color:#e0293c}' +
+      '.nfb-banner button{margin-top:8px;padding:6px 14px;background:#fff;color:#141414;border:1px solid #d9d9d9;' +
+      'border-radius:999px;font:inherit;cursor:pointer}' +
+      '.nfb-banner button:hover{border-color:#e0293c;background:#fdf0f1}'
+    box.appendChild(style)
     const title = document.createElement('strong')
     title.textContent = 'Nepal Fin Buddy'
     box.appendChild(title)
@@ -65,7 +72,6 @@ globalThis.NFB = (() => {
     }
     const close = document.createElement('button')
     close.textContent = 'Dismiss'
-    close.style.cssText = 'margin-top:8px;padding:6px 12px;border:0;border-radius:6px;font:inherit'
     close.onclick = () => box.remove()
     box.appendChild(close)
     document.body.appendChild(box)
