@@ -1,7 +1,7 @@
 import { del, getWithTotal, patch, post } from './client'
 
 export const CATEGORIES = [
-  'groceries', 'dining', 'transport', 'utilities', 'rent', 'health',
+  'groceries', 'dining', 'transport', 'utilities', 'rent', 'medical',
   'education', 'shopping', 'entertainment', 'fees', 'gifts', 'other',
 ] as const
 export type Category = (typeof CATEGORIES)[number]
