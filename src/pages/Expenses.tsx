@@ -22,7 +22,9 @@ const SOURCE_LABEL: Record<ExpenseOut['source'], string> = {
 export default function Expenses() {
   const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
-  const category = params.get('category') ?? ''
+  // Ignore stale slugs (e.g. a bookmarked ?category=health) that no longer exist.
+  const rawCategory = params.get('category') ?? ''
+  const category = (CATEGORIES as readonly string[]).includes(rawCategory) ? rawCategory : ''
   const paymentMethod = params.get('payment_method') ?? ''
   const { options: paymentOptions, labelOf: paymentLabel } = usePaymentMethods()
   const page = Math.max(1, Number(params.get('page')) || 1)

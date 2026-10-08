@@ -63,6 +63,8 @@ const FIELDS: { key: 'vendor_name' | 'vendor_pan' | 'bill_number'
   { key: 'total_amount', label: 'Total amount', numeric: true },
 ]
 
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+
 export default function Snap() {
   const qc = useQueryClient()
   const [stage, setStage] = useState<Stage>('upload')
@@ -75,6 +77,10 @@ export default function Snap() {
 
   async function pick(f: File | null) {
     if (!f || busy) return
+    if (!ACCEPTED_TYPES.includes(f.type)) {
+      setError('Unsupported file — use a JPEG, PNG, WebP or PDF.')
+      return
+    }
     setError('')
     setBusy(true)
     setProgress(0)
@@ -189,7 +195,7 @@ export default function Snap() {
           <input
             ref={inputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
+            accept={ACCEPTED_TYPES.join(',')}
             hidden
             onChange={(e) => {
               void pick(e.target.files?.[0] ?? null)
