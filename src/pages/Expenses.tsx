@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { listBills } from '../api/bills'
@@ -77,10 +78,12 @@ export default function Expenses() {
     mutationFn: deleteExpense,
     onSuccess: () => {
       setConfirmId(null)
+      toast.success('Expense deleted')
       void qc.invalidateQueries({ queryKey: ['expenses'] })
       void qc.invalidateQueries({ queryKey: ['stats'] })
       void qc.invalidateQueries({ queryKey: ['bills'] })
     },
+    onError: (e) => toast.error(errMsg(e)),
   })
 
   const expenses = data?.items ?? []

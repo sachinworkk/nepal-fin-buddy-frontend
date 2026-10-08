@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
@@ -160,7 +161,9 @@ function Chat() {
         toUi(reply),
       ])
       refreshData()
+      toast.success(decision === 'confirm' ? 'Action confirmed' : 'Action cancelled')
     } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e))
       if (e instanceof ApiError && e.status === 409) {
         // Out of sync with the server (e.g. decided elsewhere): reload the thread.
         setError(e.message)

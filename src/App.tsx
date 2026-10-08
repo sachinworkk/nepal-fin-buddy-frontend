@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import './App.css'
 import { AuthedShell, PublicShell } from './components/Layout'
 import { isAuthed } from './lib/auth'
@@ -21,6 +22,7 @@ const goHome = () => window.location.assign('/')
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster position="top-right" richColors closeButton />
       <BrowserRouter>
         <Routes>
           <Route

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Fragment, useState } from 'react'
 import {
   CATEGORIES,
@@ -135,6 +136,7 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
       void queryClient.invalidateQueries({ queryKey: ['expenses'] })
       void queryClient.invalidateQueries({ queryKey: ['stats'] })
       void queryClient.invalidateQueries({ queryKey: ['bills'] })
+      toast.success(expense ? 'Expense updated' : 'Expense added')
       onDone()
     },
   })
