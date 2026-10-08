@@ -3,10 +3,11 @@ import { toast } from 'sonner'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { confirmBill, updateBill, uploadBill, type BillItem, type BillOut } from '../api/bills'
-import { CATEGORIES, type Category } from '../api/expenses'
+import { CATEGORIES, type Category, type PaymentMethod } from '../api/expenses'
 import DateInput, { type DateValue } from '../components/DateInput'
 import { adToBs, formatBs, parseBs, resolveAd } from '../lib/bsCalendar'
 import { formatNpr, loadDateMode } from '../lib/dates'
+import { usePaymentMethods } from '../lib/usePaymentMethods'
 
 type Stage = 'upload' | 'editing' | 'confirmed'
 
@@ -21,6 +22,7 @@ interface Draft {
   discount: string
   vat_amount: string
   total_amount: string
+  payment_method: PaymentMethod | ''
   category: Category
   items: BillItem[]
 }
@@ -47,7 +49,8 @@ function toDraft(b: BillOut): Draft {
     discount: b.discount ?? '',
     vat_amount: b.vat_amount ?? '',
     total_amount: b.total_amount ?? '',
-    category: 'groceries',
+    payment_method: b.payment_method ?? '',
+    category: b.suggested_category ?? 'groceries',
     items: b.items.map((i) => ({ ...i })),
   }
 }
@@ -67,6 +70,7 @@ const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf']
 
 export default function Snap() {
   const qc = useQueryClient()
+  const { options: paymentOptions } = usePaymentMethods()
   const [stage, setStage] = useState<Stage>('upload')
   const [progress, setProgress] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -134,6 +138,7 @@ export default function Snap() {
         discount: draft.discount || null,
         vat_amount: draft.vat_amount || null,
         total_amount: draft.total_amount || null,
+        payment_method: draft.payment_method || null,
         items: draft.items,
       }
       await updateBill(draft.id, patch)
@@ -245,6 +250,19 @@ export default function Snap() {
               />
               {draft.printed_bs && <small className="date-preview">Printed on bill: {draft.printed_bs} BS</small>}
             </div>
+            <label className="field">
+              <span>Payment method</span>
+              <select
+                className="input"
+                value={draft.payment_method}
+                onChange={(e) => set('payment_method', e.target.value)}
+              >
+                <option value="">Not specified</option>
+                {paymentOptions.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </label>
             <label className="field">
               <span>Category</span>
               <select
