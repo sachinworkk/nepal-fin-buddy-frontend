@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { confirmBill, updateBill, uploadBill, type BillItem, type BillOut } from '../api/bills'
@@ -51,6 +52,7 @@ const FIELDS: { key: 'vendor_name' | 'vendor_pan' | 'bill_number' | 'bill_date_a
 ]
 
 export default function Snap() {
+  const qc = useQueryClient()
   const [stage, setStage] = useState<Stage>('upload')
   const [progress, setProgress] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -122,6 +124,9 @@ export default function Snap() {
         total_amount: draft.total_amount,
         bill_date_ad: draft.bill_date_ad,
       })
+      void qc.invalidateQueries({ queryKey: ['expenses'] })
+      void qc.invalidateQueries({ queryKey: ['stats'] })
+      void qc.invalidateQueries({ queryKey: ['bills'] })
       setStage('confirmed')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))

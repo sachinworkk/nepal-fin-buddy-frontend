@@ -8,7 +8,7 @@ import ExpenseForm from '../components/ExpenseForm'
 import { formatNpr, useBsConvert, useDebounced } from '../lib/dates'
 import { usePaymentMethods } from '../lib/usePaymentMethods'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 15
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 function fmtAd(iso: string) {
