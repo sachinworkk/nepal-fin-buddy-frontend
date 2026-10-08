@@ -40,7 +40,7 @@ function useDiffRows(expense: PendingActionExpense, changes: PendingActionChange
       after: <span className="action-cat">{changes.category}</span>,
     })
   if (changes.merchant !== undefined)
-    rows.push({ label: 'Merchant', before: text(expense.merchant), after: text(changes.merchant) })
+    rows.push({ label: 'Paid to', before: text(expense.merchant), after: text(changes.merchant) })
   if (changes.expense_date !== undefined || changes.expense_date_bs !== undefined)
     rows.push({
       label: 'Date',

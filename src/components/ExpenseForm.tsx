@@ -259,10 +259,10 @@ export default function ExpenseForm({ onDone, expense }: { onDone: () => void; e
           </select>
         </label>
         <label className="field">
-          <span>Merchant / vendor</span>
+          <span>Paid to</span>
           <input
             className="input"
-            placeholder="e.g. Bhatbhateni"
+            placeholder="Shop, person, or service (e.g. Bhatbhateni, Mom)"
             value={form.merchant}
             onChange={set('merchant')}
           />

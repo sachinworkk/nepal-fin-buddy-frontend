@@ -138,8 +138,8 @@ export default function Dashboard() {
         </div>
 
         <div className="dash-card">
-          <h3 className="dash-h">Top merchants · {s.month_label}</h3>
-          {s.top_merchants.length === 0 && <p className="dash-muted">No merchants recorded this month.</p>}
+          <h3 className="dash-h">Top recipients · {s.month_label}</h3>
+          {s.top_merchants.length === 0 && <p className="dash-muted">No recipients recorded this month.</p>}
           <ol className="merch-list">
             {s.top_merchants.map((m) => (
               <li key={m.merchant}>
