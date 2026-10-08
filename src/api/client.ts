@@ -10,6 +10,8 @@ export class ApiError extends Error {
   }
 }
 
+const NETWORK_ERROR = "Can't reach the server. Check your connection and try again."
+
 const getToken = () => localStorage.getItem('token')
 
 interface ValidationItem {
@@ -53,14 +55,19 @@ async function toError(res: Response): Promise<ApiError> {
 async function raw(path: string, init: RequestInit = {}): Promise<Response> {
   const token = getToken()
   const isForm = init.body instanceof FormData
-  const res = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: {
-      ...(init.body && !isForm ? { 'Content-Type': 'application/json' } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init.headers,
-    },
-  })
+  let res: Response
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...init,
+      headers: {
+        ...(init.body && !isForm ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init.headers,
+      },
+    })
+  } catch {
+    throw new ApiError(0, NETWORK_ERROR)
+  }
   if (res.status === 401) {
     handleUnauthorized(!!token)
     throw new ApiError(401, token ? 'Session expired — log in again' : await toError(res).then((e) => e.message))
@@ -128,7 +135,7 @@ export function uploadFile<T>(
         resolve(parsed as T)
       }
     }
-    xhr.onerror = () => reject(new Error('Network error during upload'))
+    xhr.onerror = () => reject(new ApiError(0, NETWORK_ERROR))
     xhr.send(body)
   })
 }
