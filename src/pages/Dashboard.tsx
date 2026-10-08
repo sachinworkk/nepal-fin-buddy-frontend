@@ -4,11 +4,15 @@ import { listExpenses } from '../api/expenses'
 import { getByCategory, getMonthly, getSummary } from '../api/stats'
 import MonthlyChart from '../components/MonthlyChart'
 import { fmtAd, formatNpr } from '../lib/dates'
+import { useMe } from '../lib/useMe'
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
 
 export default function Dashboard() {
+  const { data: me } = useMe()
+  const firstName = me?.full_name?.trim().split(/\s+/)[0]
+  const title = firstName ? `Namaste, ${firstName}` : 'Dashboard'
   const summary = useQuery({ queryKey: ['stats', 'summary'], queryFn: getSummary })
   const monthly = useQuery({ queryKey: ['stats', 'monthly', 6], queryFn: () => getMonthly(6) })
   const current = monthly.data?.[monthly.data.length - 1]
@@ -37,7 +41,7 @@ export default function Dashboard() {
       <>
         <div className="page-header">
           <div>
-            <h2 className="page-title">Dashboard</h2>
+            <h2 className="page-title">{title}</h2>
             <p className="page-sub">Your spending overview, in Bikram Sambat months.</p>
           </div>
         </div>
@@ -85,7 +89,7 @@ export default function Dashboard() {
     <>
       <div className="page-header">
         <div>
-          <h2 className="page-title">Dashboard</h2>
+          <h2 className="page-title">{title}</h2>
           <p className="page-sub">Your spending overview, in Bikram Sambat months.</p>
         </div>
         <Link className="btn btn-accent" to="/expenses?new=1">Add expense</Link>
