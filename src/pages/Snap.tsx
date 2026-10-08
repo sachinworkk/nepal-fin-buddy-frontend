@@ -63,7 +63,7 @@ const FIELDS: { key: 'vendor_name' | 'vendor_pan' | 'bill_number'
   { key: 'total_amount', label: 'Total amount', numeric: true },
 ]
 
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf']
 
 export default function Snap() {
   const qc = useQueryClient()
@@ -78,7 +78,7 @@ export default function Snap() {
   async function pick(f: File | null) {
     if (!f || busy) return
     if (!ACCEPTED_TYPES.includes(f.type)) {
-      setError('Unsupported file — use a JPEG, PNG, WebP or PDF.')
+      setError('Unsupported file — use a JPEG, PNG or PDF.')
       return
     }
     setError('')
@@ -209,7 +209,7 @@ export default function Snap() {
             </svg>
           </span>
           <strong>{busy ? 'Reading your bill…' : 'Drop a bill here, or click to choose'}</strong>
-          <span>JPEG, PNG, WebP or PDF · up to 10 MB</span>
+          <span>JPEG, PNG or PDF · up to 10 MB</span>
           {busy ? (
             <div className="snap-progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
               <div style={{ width: `${progress}%` }} />
