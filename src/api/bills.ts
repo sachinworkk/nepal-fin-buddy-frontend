@@ -1,5 +1,5 @@
 import { get, patch, post, uploadFile } from './client'
-import type { Category } from './expenses'
+import type { Category, PaymentMethod } from './expenses'
 
 export interface BillItem {
   description: string
@@ -20,6 +20,9 @@ export interface BillOut {
   taxable_amount?: string | null
   vat_amount?: string | null
   total_amount?: string | null
+  payment_method?: PaymentMethod | null
+  /** The extractor's category guess; only present on the upload response. */
+  suggested_category?: Category | null
   status: 'extracted' | 'confirmed'
   prize_enrolled?: boolean
   extraction_confidence?: number | null
