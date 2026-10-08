@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useState } from 'react'
 import { updateMe, type UserOut } from '../api/auth'
 import { useMe } from '../lib/useMe'
@@ -26,7 +27,10 @@ function ProfileForm({ me }: { me: UserOut }) {
 
   const save = useMutation({
     mutationFn: () => updateMe({ full_name: name.trim() || null }),
-    onSuccess: (u) => qc.setQueryData(['me'], u),
+    onSuccess: (u) => {
+      qc.setQueryData(['me'], u)
+      toast.success('Profile saved')
+    },
   })
 
   return (
@@ -53,7 +57,6 @@ function ProfileForm({ me }: { me: UserOut }) {
         </button>
       </div>
       {save.isError && <p className="form-error">{errMsg(save.error)}</p>}
-      {save.isSuccess && !dirty && <span className="badge badge-ok">Saved</span>}
     </form>
   )
 }

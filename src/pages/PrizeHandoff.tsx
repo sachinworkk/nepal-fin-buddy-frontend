@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -436,6 +437,7 @@ export default function PrizeHandoff() {
   function onDone() {
     closeSheet()
     setNotice('Recorded — your entry is in the history below.')
+    toast.success('Entry recorded')
     void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
     void qc.invalidateQueries({ queryKey: ['prize-eligible'] })
     void qc.invalidateQueries({ queryKey: ['bills'] })
