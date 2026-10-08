@@ -1407,7 +1407,7 @@ main:has(.chat) {
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-1);
-  font-size: var(--text-sm);
+  font-size: var(--text-lg);
 }
 
 .msg-user .msg-bubble {
@@ -1533,7 +1533,7 @@ main:has(.chat) {
 }
 
 .cite-chip {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 500;
   padding: 2px var(--sp-2);
   border-radius: var(--r-full);
@@ -1569,7 +1569,7 @@ main:has(.chat) {
   padding: var(--sp-2) 0;
   border: none;
   background: transparent;
-  font-size: var(--text-sm);
+  font-size: var(--text-lg);
   line-height: 1.5;
   max-height: 160px;
 }
@@ -1583,7 +1583,7 @@ main:has(.chat) {
 }
 
 .chat-hint {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   color: var(--text-3);
   margin: var(--sp-2) 0 0;
   text-align: center;
@@ -1603,6 +1603,10 @@ main:has(.chat) {
   background: var(--bg);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
+}
+
+.action-card {
+  font-size: var(--text-lg);
 }
 
 .action-card.is-decided {
@@ -1634,7 +1638,7 @@ main:has(.chat) {
 
 .action-diff dt {
   color: var(--text-3);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
 }
 
 .action-diff dd {
@@ -1665,7 +1669,7 @@ main:has(.chat) {
 
 .action-date small {
   color: var(--text-3);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
 }
 
 .action-expense {
@@ -1688,6 +1692,10 @@ main:has(.chat) {
 
 .action-amount {
   font-weight: 600;
+}
+
+.action-card .btn {
+  font-size: var(--text-base);
 }
 
 .action-buttons {
