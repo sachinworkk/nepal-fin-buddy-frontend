@@ -2,7 +2,7 @@
 
 Companion extension for the Nepal Fin Buddy web app. Today it has one feature,
 **ird-prize-prefill**: when you click "Open IRD portal" in the app, it fills the portal's text fields
-(bill number, PAN, total, name, address, mobile). Without it, use the app's Copy buttons.
+(bill number, PAN, total, name, address, mobile) and picks the bill date in its calendar. Without it, use the app's Copy buttons.
 
 Install: `chrome://extensions` → Developer mode → Load unpacked → select this folder.
 Mobile browsers don't run Chrome extensions, so the app skips the prefill link there.
@@ -32,5 +32,5 @@ Alerts, notifications or anything needing the browser's background APIs will nee
 
 ## ird-prize-prefill: what it deliberately doesn't do
 
-The Turnstile check, the bill photo, the submit button and the bill date (a custom calendar widget —
-the banner shows the date to pick). `company_website` is skipped: on the portal it is a hidden honeypot.
+The Turnstile check, the bill photo and the submit button. The bill date is picked through the portal's
+calendar (AD only); if that fails (e.g. the year isn't offered) the banner shows the date to pick. `company_website` is skipped: on the portal it is a hidden honeypot.

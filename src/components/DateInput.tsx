@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { loadDateMode, saveDateMode, toAsciiDigits, useBsConvert, type DateMode } from '../lib/dates'
+import { adToBs, bsToAd, fmtBsLabel, parseBs, resolveAd } from '../lib/bsCalendar'
+import { fmtAd, loadDateMode, saveDateMode, type DateMode } from '../lib/dates'
+import BsDatePicker from './BsDatePicker'
 
 export interface DateValue {
   ad?: string
@@ -21,25 +23,33 @@ export default function DateInput({ label, value, onChange, bsOnly, required }: 
   const [pref, setPref] = useState<Mode>(loadDateMode)
   const mode: Mode = bsOnly ? 'bs' : pref
 
-  const conv = useBsConvert(
-    mode === 'ad' ? (value.ad ? { ad: value.ad } : null) : value.bs ? { bs: value.bs } : null,
-  )
-
   function switchMode(next: Mode) {
     if (next === mode) return
     setPref(next)
     saveDateMode(next)
-    // Carry the converted value across when we know it.
-    if (next === 'bs') onChange(conv.data ? { bs: conv.data.bs } : {})
-    else onChange(conv.data ? { ad: conv.data.ad } : {})
+    // Carry the value across; both directions convert locally.
+    const ad = resolveAd(value)
+    if (next === 'bs') {
+      const b = ad ? adToBs(ad) : null
+      onChange(b ? { bs: `${b.y}.${String(b.m).padStart(2, '0')}.${String(b.d).padStart(2, '0')}` } : {})
+    } else onChange(ad ? { ad } : {})
   }
 
-  let preview = ''
-  if (conv.data) {
-    preview = mode === 'bs' ? `= ${new Date(conv.data.ad + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : `= ${conv.data.bs_label}`
+  let status = ''
+  let err = false
+  if (mode === 'ad' && value.ad) {
+    const b = adToBs(value.ad)
+    status = b ? `= ${fmtBsLabel(b)} BS` : 'Outside the supported BS calendar range'
+    err = !b
+  } else if (mode === 'bs' && value.bs) {
+    const b = parseBs(value.bs)
+    const ad = b && bsToAd(b)
+    if (ad) status = `= ${fmtAd(ad)} (AD)`
+    else if (/^\d{4}\.\d{1,2}\.\d{1,2}$/.test(value.bs)) {
+      status = 'Not a valid BS date'
+      err = true
+    }
   }
-  const err = conv.error instanceof Error ? conv.error.message : ''
-  const status = err || preview || (conv.isFetching ? 'Converting…' : '')
 
   return (
     <div className="field">
@@ -65,16 +75,10 @@ export default function DateInput({ label, value, onChange, bsOnly, required }: 
           onChange={(e) => onChange(e.target.value ? { ad: e.target.value } : {})}
         />
       ) : (
-        <input
-          className="input"
-          inputMode="numeric"
-          placeholder="YYYY.MM.DD"
+        <BsDatePicker
           required={required}
           value={value.bs ?? ''}
-          onChange={(e) => {
-            const v = toAsciiDigits(e.target.value).replace(/[-/]/g, '.')
-            onChange(v ? { bs: v } : {})
-          }}
+          onChange={(v) => onChange(v ? { bs: v } : {})}
         />
       )}
       {status && (

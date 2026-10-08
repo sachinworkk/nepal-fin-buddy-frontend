@@ -10,6 +10,7 @@ import {
   type ExpenseOut,
   type PaymentMethod,
 } from '../api/expenses'
+import { todayIso } from '../lib/bsCalendar'
 import { loadDateMode } from '../lib/dates'
 import { usePaymentMethods } from '../lib/usePaymentMethods'
 import DateInput, { type DateValue } from './DateInput'
@@ -31,7 +32,7 @@ const emptyForm = {
   note: '',
   payment_method: '' as PaymentMethod | '',
 }
-const today = (): DateValue => ({ ad: new Date().toISOString().slice(0, 10) })
+const today = (): DateValue => ({ ad: todayIso() })
 
 function initialDate(e?: ExpenseOut): DateValue {
   if (!e) return today()

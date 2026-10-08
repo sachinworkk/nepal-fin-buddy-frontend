@@ -774,6 +774,137 @@ button.list-row:hover {
   color: var(--danger);
 }
 
+
+/* BS date picker */
+.bs-picker {
+  position: relative;
+}
+
+.bs-picker-row {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.bs-picker-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.bs-picker-btn {
+  flex: none;
+  width: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md, 8px);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bs-picker-btn:hover {
+  background: var(--accent-soft);
+}
+
+.bs-pop {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  width: min(300px, calc(100vw - 2 * var(--sp-4)));
+  padding: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.bs-pop-head {
+  display: flex;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-2);
+}
+
+.bs-pop-head select {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  font-size: var(--text-sm);
+}
+
+.bs-pop-head button {
+  width: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.bs-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.bs-wd {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  padding: 2px 0;
+}
+
+.bs-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  font-size: var(--text-sm);
+  color: var(--text-1);
+  cursor: pointer;
+}
+
+.bs-day small {
+  font-size: 9px;
+  color: var(--text-3);
+  line-height: 1;
+}
+
+.bs-day:hover {
+  background: var(--accent-soft);
+}
+
+.bs-day.today {
+  border-color: var(--border-strong);
+}
+
+.bs-day.sel,
+.bs-day.sel small {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+.bs-pop-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--sp-2);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.bs-pop-foot button {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* ══ Auth ═════════════════════════════════════════════════ */
 .login-wrap {
   min-height: 100vh;
@@ -1902,7 +2033,7 @@ main:has(.chat) {
 .hand-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: 'label copy' 'value copy';
+  grid-template-areas: 'label copy' 'value copy' 'hint copy';
   column-gap: var(--sp-3);
   align-items: center;
   padding: var(--sp-2) var(--sp-3);
@@ -1917,6 +2048,10 @@ main:has(.chat) {
   grid-area: label;
   font-size: var(--text-xs);
   color: var(--text-3);
+}
+
+.hand-row .date-preview {
+  grid-area: hint;
 }
 
 .hand-value {
