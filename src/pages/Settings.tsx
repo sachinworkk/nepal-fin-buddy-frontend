@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { updateMe, type Language, type UserOut } from '../api/auth'
+import { updateMe, type UserOut } from '../api/auth'
 import { logout } from '../lib/auth'
 import { useMe } from '../lib/useMe'
 
@@ -22,12 +22,11 @@ function ProfileCard() {
 function ProfileForm({ me }: { me: UserOut }) {
   const qc = useQueryClient()
   const [name, setName] = useState(me.full_name ?? '')
-  const [lang, setLang] = useState<Language>(me.preferred_language)
 
-  const dirty = name.trim() !== (me.full_name ?? '') || lang !== me.preferred_language
+  const dirty = name.trim() !== (me.full_name ?? '')
 
   const save = useMutation({
-    mutationFn: () => updateMe({ full_name: name.trim() || null, preferred_language: lang }),
+    mutationFn: () => updateMe({ full_name: name.trim() || null }),
     onSuccess: (u) => qc.setQueryData(['me'], u),
   })
 
@@ -49,14 +48,6 @@ function ProfileForm({ me }: { me: UserOut }) {
         <label className="field">
           <span>Full name</span>
           <input className="input" value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label className="field">
-          <span>Language</span>
-          <select className="input" value={lang} onChange={(e) => setLang(e.target.value as Language)}>
-            <option value="en">English</option>
-            <option value="ne">नेपाली (Nepali)</option>
-          </select>
-          <small className="field-hint">Used for assistant replies and IRD lottery messages.</small>
         </label>
       </div>
       {save.isError && <p className="form-error">{errMsg(save.error)}</p>}
