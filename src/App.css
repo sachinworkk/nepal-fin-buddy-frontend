@@ -1857,15 +1857,26 @@ main:has(.chat) {
   margin-bottom: 0;
 }
 
-.settings-card .form-actions {
-  margin-top: 0;
+.settings-card .badge {
+  align-self: flex-start;
 }
 
-.settings-row {
+.settings-name-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-4);
+  align-items: flex-end;
+  gap: var(--sp-3);
+  max-width: 520px;
+}
+
+.settings-name-row .field {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .settings-name-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 /* ══ IRD lottery ══════════════════════════════════════════ */

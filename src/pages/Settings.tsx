@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { updateMe, type UserOut } from '../api/auth'
-import { logout } from '../lib/auth'
 import { useMe } from '../lib/useMe'
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -44,19 +43,17 @@ function ProfileForm({ me }: { me: UserOut }) {
           <p className="card-sub">Signed in as {me.email}</p>
         </div>
       </div>
-      <div className="form-grid">
+      <div className="settings-name-row">
         <label className="field">
           <span>Full name</span>
           <input className="input" value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} />
         </label>
-      </div>
-      {save.isError && <p className="form-error">{errMsg(save.error)}</p>}
-      <div className="form-actions">
-        {save.isSuccess && !dirty && <span className="badge badge-ok">Saved</span>}
         <button className="btn btn-accent" type="submit" disabled={save.isPending || !dirty}>
           {save.isPending ? 'Saving…' : 'Save changes'}
         </button>
       </div>
+      {save.isError && <p className="form-error">{errMsg(save.error)}</p>}
+      {save.isSuccess && !dirty && <span className="badge badge-ok">Saved</span>}
     </form>
   )
 }
@@ -67,20 +64,11 @@ export default function Settings() {
       <div className="page-header">
         <div>
           <h2 className="page-title">Settings</h2>
-          <p className="page-sub">Manage your profile and account.</p>
+          <p className="page-sub">Manage your profile.</p>
         </div>
       </div>
       <div className="settings-grid">
         <ProfileCard />
-        <div className="card settings-row">
-          <div>
-            <h3 className="card-title">Account</h3>
-            <p className="card-sub">Sign out of Nepal Fin Buddy on this device.</p>
-          </div>
-          <button className="btn btn-ghost" type="button" onClick={logout}>
-            Log out
-          </button>
-        </div>
       </div>
     </>
   )
