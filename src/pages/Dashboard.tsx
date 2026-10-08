@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { listExpenses } from '../api/expenses'
 import { getByCategory, getMonthly, getSummary } from '../api/stats'
 import MonthlyChart from '../components/MonthlyChart'
-import { formatNpr } from '../lib/dates'
+import { fmtAd, formatNpr } from '../lib/dates'
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
@@ -16,14 +17,22 @@ export default function Dashboard() {
     queryFn: () => getByCategory(current!.start, current!.end),
     enabled: !!current,
   })
+  const hasAny = monthly.data?.some((m) => Number(m.total) > 0)
+  // Nothing in the 6-month window: look up the newest expense, which may be an older bill.
+  const latest = useQuery({
+    queryKey: ['expenses', 'latest'],
+    queryFn: () => listExpenses({ limit: 1, offset: 0 }),
+    enabled: hasAny === false,
+  })
 
   const error = summary.error ?? monthly.error ?? cats.error
   if (error) return <p className="form-error">{errMsg(error)}</p>
   if (!summary.data || !monthly.data) return <p className="page-body">Loading…</p>
 
   const s = summary.data
-  const hasAny = monthly.data.some((m) => Number(m.total) > 0)
   if (!hasAny) {
+    if (latest.isLoading) return <p className="page-body">Loading…</p>
+    const older = latest.data?.items[0]
     return (
       <>
         <div className="page-header">
@@ -39,9 +48,24 @@ export default function Dashboard() {
               <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
             </svg>
           </span>
-          <strong>No spending recorded yet</strong>
-          <p>Snap a bill or add an expense and your monthly overview will show up here.</p>
+          {older ? (
+            <>
+              <strong>No spending in the last 6 months</strong>
+              <p>
+                Your latest expense, {formatNpr(older.amount)}
+                {older.merchant ? ` at ${older.merchant}` : ''}, is dated {older.expense_date_bs} BS
+                ({fmtAd(older.expense_date_ad)}). The overview only covers recent months, so it
+                shows up in your expenses list instead.
+              </p>
+            </>
+          ) : (
+            <>
+              <strong>No spending recorded yet</strong>
+              <p>Snap a bill or add an expense and your monthly overview will show up here.</p>
+            </>
+          )}
           <div className="empty-actions">
+            {older && <Link className="btn btn-ghost" to="/expenses">View expenses</Link>}
             <Link className="btn btn-accent" to="/snap">Snap a bill</Link>
             <Link className="btn btn-ghost" to="/expenses?new=1">Add expense</Link>
           </div>
