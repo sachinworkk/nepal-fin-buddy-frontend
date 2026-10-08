@@ -2312,3 +2312,41 @@ main:has(.chat) {
     border-radius: 16px;
   }
 }
+
+/* Confirmation dialog */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: rgba(20, 20, 20, 0.45);
+}
+
+.modal {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--sp-5);
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.modal-body {
+  margin: 0 0 var(--sp-5);
+  color: var(--text-2);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}

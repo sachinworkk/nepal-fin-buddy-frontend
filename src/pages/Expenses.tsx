@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { listBills } from '../api/bills'
 import { CATEGORIES, deleteExpense, listExpenses, type ExpenseOut } from '../api/expenses'
@@ -58,6 +58,13 @@ export default function Expenses() {
       return n
     })
 
+  useEffect(() => {
+    if (!confirmId) return
+    const onKey = (ev: KeyboardEvent) => ev.key === 'Escape' && setConfirmId(null)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [confirmId])
+
   const closeForm = () => {
     setShowForm(false)
     if (params.has('new'))
@@ -89,6 +96,7 @@ export default function Expenses() {
   })
 
   const expenses = data?.items ?? []
+  const confirmTarget = expenses.find((x) => x.id === confirmId)
   const total = data?.total ?? 0
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const filtered = !!(category || paymentMethod || q || dateFrom || dateTo)
@@ -171,7 +179,6 @@ export default function Expenses() {
       )}
 
       {error && <p className="form-error">{errMsg(error)}</p>}
-      {remove.isError && <p className="form-error">{errMsg(remove.error)}</p>}
 
       {isLoading && <p className="page-body">Loading expenses…</p>}
 
@@ -229,31 +236,40 @@ export default function Expenses() {
               </span>
               <span className="expenses-amount">{formatNpr(e.amount)}</span>
               <span className="expenses-actions">
-                {confirmId === e.id ? (
-                  <>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => setConfirmId(null)}>
-                      Cancel
-                    </button>
-                    <button className="btn btn-danger btn-sm" type="button" disabled={remove.isPending}
-                      onClick={() => remove.mutate(e.id)}>
-                      {remove.isPending ? 'Deleting…' : 'Delete'}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button className="btn btn-ghost btn-sm" type="button"
-                      onClick={() => { closeForm(); setEditing(e); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
-                      Edit
-                    </button>
-                    <button className="btn btn-ghost btn-sm" type="button" aria-label={`Delete ${e.merchant || 'expense'}`}
-                      onClick={() => setConfirmId(e.id)}>
-                      Delete
-                    </button>
-                  </>
-                )}
+                <button className="btn btn-ghost btn-sm" type="button"
+                  onClick={() => { closeForm(); setEditing(e); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+                  Edit
+                </button>
+                <button className="btn btn-ghost btn-sm" type="button" aria-label={`Delete ${e.merchant || 'expense'}`}
+                  onClick={() => { remove.reset(); setConfirmId(e.id) }}>
+                  Delete
+                </button>
               </span>
             </div>
           ))}
+        </div>
+      )}
+
+      {confirmTarget && (
+        <div className="modal-backdrop" onClick={() => !remove.isPending && setConfirmId(null)}>
+          <div className="modal" role="alertdialog" aria-modal="true" aria-labelledby="del-title"
+            onClick={(ev) => ev.stopPropagation()}>
+            <h3 id="del-title" className="modal-title">Delete this expense?</h3>
+            <p className="modal-body">
+              {confirmTarget.merchant || 'Untitled'} · {formatNpr(confirmTarget.amount)} will be permanently removed.
+              This can't be undone.
+            </p>
+                  <div className="modal-actions">
+              <button className="btn btn-ghost" type="button" autoFocus disabled={remove.isPending}
+                onClick={() => setConfirmId(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" type="button" disabled={remove.isPending}
+                onClick={() => remove.mutate(confirmTarget.id)}>
+                {remove.isPending ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
