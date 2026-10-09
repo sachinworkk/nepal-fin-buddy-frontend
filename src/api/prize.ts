@@ -103,3 +103,58 @@ export const markPrizeSubmitted = (enrollmentId: string, prizeCouponNumber?: str
 /** Closes a hand-off the user won't finish; it moves to history as dismissed. */
 export const dismissPrizeHandoff = (enrollmentId: string) =>
   patch<PrizeEnrollmentOut>(`/prize/enrollments/${enrollmentId}`, { status: 'dismissed' })
+
+export interface PrizeWin {
+  prize_coupon_number: string
+  enrollment_id: string
+  bill_number: string
+  bill_date: string
+  draw_id: string
+  draw_title_en: string
+  draw_title_ne: string | null
+  category_title_en: string
+  category_title_ne: string | null
+  winner_rank: number
+  published_at: string | null
+  claim_deadline: string | null
+  claim_open: boolean
+}
+
+export interface PrizeDraw {
+  draw_id: string
+  category_title_en: string
+  category_title_ne: string | null
+  title_en: string
+  title_ne: string | null
+  published_at: string | null
+  claim_deadline: string | null
+  claim_open: boolean
+  winners: { winner_rank: number; prize_fiscal_year_code: string; prize_coupon_number: string }[]
+}
+
+export interface PrizeWinnersPage {
+  limit: number
+  offset: number
+  total_draws: number
+  has_more: boolean
+  draws: PrizeDraw[]
+  /** Filter options; the portal returns them whatever filter is applied. */
+  fiscal_years: { fiscal_year_code: string; display_name: string; winner_count: number }[]
+  categories: { category_id: string; title_en: string; title_ne: string | null }[]
+}
+
+export interface PrizeWinnersFilter {
+  fiscalYear?: string
+  categoryId?: string
+}
+
+/** The user's submitted coupons that appear in a published IRD draw. */
+export const listMyPrizeWins = () => get<PrizeWin[]>('/prize/my-wins')
+
+/** The portal also filters by eligibility window (`from`/`to`); the app doesn't use it. */
+export const listPrizeWinners = (limit = 6, offset = 0, f: PrizeWinnersFilter = {}) => {
+  const q = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+  if (f.fiscalYear) q.set('fiscal_year_code', f.fiscalYear)
+  if (f.categoryId) q.set('category_id', f.categoryId)
+  return get<PrizeWinnersPage>(`/prize/winners?${q}`)
+}
