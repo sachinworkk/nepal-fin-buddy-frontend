@@ -1017,6 +1017,35 @@ button.list-row:hover {
   color: var(--danger);
 }
 
+.bumper-card {
+  margin-bottom: var(--sp-6);
+}
+
+.bumper-badge {
+  margin-left: var(--sp-3);
+  vertical-align: middle;
+}
+
+.bumper-stats {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-5);
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  color: var(--text-2);
+  font-size: var(--text-sm);
+}
+
+.bumper-latest {
+  margin: var(--sp-3) 0 0;
+}
+
+.bumper-link {
+  align-self: flex-start;
+  margin-top: var(--sp-3);
+}
+
 .dash-down {
   color: var(--success);
 }

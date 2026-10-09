@@ -16,15 +16,15 @@ import {
   type PrizeEnrollmentOut,
   type PrizeHandoffOut,
 } from '../api/prize'
+import BumperDrawCard from '../components/BumperDrawCard'
 import PrizeWinBanner from '../components/PrizeWinBanner'
 import { copyText } from '../lib/clipboard'
 import { bsLabelOfAd } from '../lib/bsCalendar'
 import { fmtAd, formatNpr } from '../lib/dates'
 import { loadPrizeProfile, savePrizeProfile } from '../lib/prizeProfile'
-import { validateAddress, validateMobile, validateName } from '../lib/prizeRules'
+import { URGENT_DAYS, validateAddress, validateMobile, validateName } from '../lib/prizeRules'
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
-const URGENT_DAYS = 14
 const COUPON_MAX = 12
 
 interface Customer {
@@ -258,6 +258,7 @@ function BillForm({
     onSuccess: (h) => {
       savePrizeProfile({ name: c.name.trim(), address: c.address.trim(), mobile_number: c.mobile_number.trim() })
       void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+      void qc.invalidateQueries({ queryKey: ['prize-summary'] })
       void qc.invalidateQueries({ queryKey: ['prize-eligible'] })
       void qc.invalidateQueries({ queryKey: ['bills'] })
       onHandoff(h)
@@ -274,6 +275,7 @@ function BillForm({
       if (e instanceof ApiError && e.status === 409) {
         void qc.invalidateQueries({ queryKey: ['prize-eligible'] })
         void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+        void qc.invalidateQueries({ queryKey: ['prize-summary'] })
       }
       setBanner(errMsg(e))
     },
@@ -499,6 +501,7 @@ export default function PrizeHandoff() {
       setContinueErr(errMsg(e))
       if (e instanceof ApiError && e.status === 409) {
         void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+        void qc.invalidateQueries({ queryKey: ['prize-summary'] })
         void qc.invalidateQueries({ queryKey: ['prize-eligible'] })
       }
     },
@@ -511,6 +514,7 @@ export default function PrizeHandoff() {
     onSuccess: () => {
       setContinueErr(null)
       void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+      void qc.invalidateQueries({ queryKey: ['prize-summary'] })
     },
     onError: (e) => {
       setContinueErr(errMsg(e))
@@ -528,6 +532,7 @@ export default function PrizeHandoff() {
     setNotice('Recorded — your entry is in the history below.')
     toast.success('Entry recorded')
     void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+    void qc.invalidateQueries({ queryKey: ['prize-summary'] })
     void qc.invalidateQueries({ queryKey: ['prize-eligible'] })
     void qc.invalidateQueries({ queryKey: ['bills'] })
     window.scrollTo({ top: 0 })
@@ -558,6 +563,7 @@ export default function PrizeHandoff() {
       )}
 
       {!selected && <PrizeWinBanner />}
+      {!selected && <BumperDrawCard />}
 
       {selected ? (
         <BillForm bill={selected} onBack={() => setSelected(null)} onHandoff={setHandoff} />
@@ -624,7 +630,7 @@ export default function PrizeHandoff() {
             </section>
           )}
 
-          <section className="section">
+          <section className="section" id="eligible">
             <div className="section-head">
               <h3>Eligible bills</h3>
               {bills.length > 0 && <span>Pick a bill to enter it</span>}

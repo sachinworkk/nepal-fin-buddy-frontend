@@ -20,3 +20,6 @@ export function validateMobile(v: string): string | null {
   if (!MOBILE_RE.test(t)) return 'Enter a 10-digit Nepali mobile number starting with 96, 97 or 98.'
   return null
 }
+
+/** Show a deadline as urgent when this many days or fewer are left. */
+export const URGENT_DAYS = 14
