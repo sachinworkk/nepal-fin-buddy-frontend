@@ -1159,6 +1159,51 @@ button.list-row:hover {
   border-radius: var(--r-full);
 }
 
+/* Budgets */
+.dash-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.dash-card-head .dash-h {
+  margin: 0;
+}
+
+.budget-fill.budget-ok {
+  background: var(--success);
+}
+
+.budget-fill.budget-warning {
+  background: var(--warn);
+}
+
+.budget-fill.budget-over {
+  background: var(--danger);
+}
+
+.cat-amt em.budget-warning {
+  color: var(--warn);
+}
+
+.cat-amt em.budget-over {
+  color: var(--danger);
+}
+
+.modal-scroll {
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 480px) {
+  .modal-scroll .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ══ Expenses ═════════════════════════════════════════════ */
 .expense-form {
   margin-bottom: var(--sp-5);
