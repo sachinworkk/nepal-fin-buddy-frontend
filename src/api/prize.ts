@@ -158,3 +158,30 @@ export const listPrizeWinners = (limit = 6, offset = 0, f: PrizeWinnersFilter = 
   if (f.categoryId) q.set('category_id', f.categoryId)
   return get<PrizeWinnersPage>(`/prize/winners?${q}`)
 }
+
+export interface PrizeBumperDraw {
+  draw_id: string
+  title_en: string
+  title_ne: string | null
+  eligible_from: string | null
+  eligible_to: string | null
+  published_at: string | null
+  claim_deadline: string | null
+  claim_open: boolean
+  winner_count: number
+}
+
+/** The portal publishes when the fiscal year ends (last day to enter bills), not the draw date. */
+export interface PrizeSummary {
+  fiscal_year_code: string | null
+  fiscal_year_name: string | null
+  entry_deadline: string | null
+  days_left: number | null
+  coupons_this_year: number
+  eligible_this_year: number
+  pending_handoffs: number
+  latest_bumper: PrizeBumperDraw | null
+  bumper_prize_amount_npr: string | null
+}
+
+export const getPrizeSummary = () => get<PrizeSummary>('/prize/summary')

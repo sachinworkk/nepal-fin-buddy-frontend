@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { listExpenses } from '../api/expenses'
 import { getByCategory, getMonthly, getSummary } from '../api/stats'
 import BudgetsCard from '../components/BudgetsCard'
+import BumperDrawCard from '../components/BumperDrawCard'
 import MonthlyChart from '../components/MonthlyChart'
 import PrizeWinBanner from '../components/PrizeWinBanner'
 import { fmtAd, formatNpr } from '../lib/dates'
@@ -48,6 +49,7 @@ export default function Dashboard() {
           </div>
         </div>
         <PrizeWinBanner link />
+        <BumperDrawCard compact />
         <div className="empty-state">
           <span className="empty-icon" aria-hidden>
             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -100,6 +102,7 @@ export default function Dashboard() {
       </div>
 
       <PrizeWinBanner link />
+      <BumperDrawCard compact />
 
       <div className="dash-kpis">
         <div className="dash-card">
