@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { listExpenses } from '../api/expenses'
 import { getByCategory, getMonthly, getSummary } from '../api/stats'
+import BudgetsCard from '../components/BudgetsCard'
 import MonthlyChart from '../components/MonthlyChart'
 import PrizeWinBanner from '../components/PrizeWinBanner'
 import { fmtAd, formatNpr } from '../lib/dates'
@@ -76,6 +77,7 @@ export default function Dashboard() {
             <Link className="btn btn-ghost" to="/expenses?new=1">Add expense</Link>
           </div>
         </div>
+        <BudgetsCard />
       </>
     )
   }
@@ -122,6 +124,8 @@ export default function Dashboard() {
         <h3 className="dash-h">Last 6 months</h3>
         <MonthlyChart months={monthly.data} />
       </div>
+
+      <BudgetsCard />
 
       <div className="dash-cols">
         <div className="dash-card">
