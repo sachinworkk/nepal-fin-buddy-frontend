@@ -8,7 +8,8 @@ import { URGENT_DAYS } from '../lib/prizeRules'
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 /**
- * Days left to enter bills for this fiscal year's IRD bumper draw, plus the user's standing.
+ * Days left to enter bills for this fiscal year's IRD lottery, plus the user's standing.
+ * The IRD draw is fortnightly and each draw has a bumper prize and daily prizes.
  * The portal publishes the fiscal-year end (the entry deadline), not the draw date.
  * Silent while loading or on error, like PrizeWinBanner.
  */
@@ -20,11 +21,13 @@ export default function BumperDrawCard({ compact = false }: { compact?: boolean 
   const days = s.days_left
   const urgent = days !== null && days <= URGENT_DAYS
   const bumper = s.latest_bumper
+  const daily = s.latest_daily
+  const latest = bumper ?? daily
   const eligibleHref = '/ird-lottery#eligible'
 
   return (
     <div className="dash-card bumper-card">
-      <span className="dash-label">IRD lottery · Bumper draw</span>
+      <span className="dash-label">IRD lottery · Fortnightly draw</span>
       {days !== null && s.entry_deadline ? (
         <>
           <strong className="dash-big">
@@ -32,17 +35,19 @@ export default function BumperDrawCard({ compact = false }: { compact?: boolean 
             {urgent && <span className="badge badge-warn bumper-badge">Closing soon</span>}
           </strong>
           <span className="dash-muted">
-            to enter bills for the {s.fiscal_year_name} bumper draw. Entry deadline {fmtAd(s.entry_deadline)}
+            to enter bills for the current fiscal year ({s.fiscal_year_name}). Entry deadline {fmtAd(s.entry_deadline)}
             {bsLabelOfAd(s.entry_deadline) && ` · ${bsLabelOfAd(s.entry_deadline)}`}
           </span>
+          <span className="dash-muted">Every fortnightly draw in {s.fiscal_year_name} has a bumper prize and daily prizes. Only bills dated in this fiscal year count.</span>
         </>
       ) : (
-        <strong className="dash-big">Bumper draw</strong>
+        <strong className="dash-big">Fortnightly draw</strong>
       )}
 
       <ul className="bumper-stats">
         <li>
-          <strong>{s.coupons_this_year}</strong> {s.coupons_this_year === 1 ? 'coupon' : 'coupons'} entered
+          <strong>{s.coupons_this_year}</strong> {s.coupons_this_year === 1 ? 'coupon' : 'coupons'} entered in {s.fiscal_year_name ?? 'this fiscal year'}
+          {s.coupons_all_time > s.coupons_this_year && <> · <strong>{s.coupons_all_time}</strong> all time</>}
         </li>
         <li>
           <strong>{s.eligible_this_year}</strong> more {s.eligible_this_year === 1 ? 'bill' : 'bills'} eligible
@@ -65,13 +70,17 @@ export default function BumperDrawCard({ compact = false }: { compact?: boolean 
         )}
       </ul>
 
-      {!compact && bumper && (
+      {!compact && latest && (
         <p className="dash-muted bumper-latest">
-          Latest bumper draw: <strong>{bumper.title_en}</strong>
-          {bumper.eligible_from && bumper.eligible_to &&
-            ` · bills from ${fmtAd(bumper.eligible_from)} to ${fmtAd(bumper.eligible_to)}`}
-          {bumper.published_at && ` · published ${fmtAd(bumper.published_at)}`}
-          {bumper.claim_open ? ` · claim by ${fmtAd(bumper.claim_deadline)}` : ' · claim window closed'}
+          Latest fortnightly draw
+          {latest.eligible_from && latest.eligible_to &&
+            `: bills from ${fmtAd(latest.eligible_from)} to ${fmtAd(latest.eligible_to)}`}
+          {latest.published_at && ` · published ${fmtAd(latest.published_at)}`}
+          {latest.claim_open ? ` · claim by ${fmtAd(latest.claim_deadline)}` : ' · claim window closed'}
+          <br />
+          {bumper && <>Bumper prize: <strong>{plural(bumper.winner_count, 'winner', 'winners')}</strong></>}
+          {bumper && daily && ' · '}
+          {daily && <>Daily prizes: <strong>{plural(daily.winner_count, 'winner', 'winners')}</strong></>}
         </p>
       )}
 
