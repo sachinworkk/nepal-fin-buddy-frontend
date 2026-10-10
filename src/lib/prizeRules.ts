@@ -21,5 +21,5 @@ export function validateMobile(v: string): string | null {
   return null
 }
 
-/** Show a deadline as urgent when this many days or fewer are left. */
-export const URGENT_DAYS = 14
+/** Show a deadline as urgent when this many days or fewer are left (draw periods are ~15 days). */
+export const URGENT_DAYS = 3
