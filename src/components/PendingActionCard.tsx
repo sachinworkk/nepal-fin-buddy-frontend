@@ -1,4 +1,10 @@
-import type { Decision, PendingAction, PendingActionChanges, PendingActionExpense } from '../api/chat'
+import type {
+  Decision,
+  PendingAction,
+  PendingActionBudget,
+  PendingActionChanges,
+  PendingActionExpense,
+} from '../api/chat'
 import { fmtAd, formatNpr } from '../lib/dates'
 import { usePaymentMethods } from '../lib/usePaymentMethods'
 
@@ -97,6 +103,27 @@ function DeleteBody({ expense }: { expense: PendingActionExpense }) {
   )
 }
 
+function BudgetDeleteBody({ budget }: { budget: PendingActionBudget }) {
+  return (
+    <>
+      <p className="action-title">Delete this budget?</p>
+      <div className="action-expense">
+        <span className="action-expense-main">
+          <span className="action-cat">{budget.category}</span>
+        </span>
+        <span className="action-amount">{formatNpr(budget.amount)} / month</span>
+      </div>
+    </>
+  )
+}
+
+function ActionBody({ action: a }: { action: PendingAction }) {
+  if (a.action === 'budget-delete') return a.budget ? <BudgetDeleteBody budget={a.budget} /> : null
+  if (!a.expense) return null
+  if (a.action === 'delete' || !a.changes) return <DeleteBody expense={a.expense} />
+  return <UpdateBody expense={a.expense} changes={a.changes} />
+}
+
 /** Confirmation cards for the edits/deletes an assistant message is waiting on. */
 export default function PendingActionCard({ actions, busy, onDecide }: Props) {
   const undecided = actions.filter((a) => a.decision === null)
@@ -105,11 +132,7 @@ export default function PendingActionCard({ actions, busy, onDecide }: Props) {
     <div className="action-cards">
       {actions.map((a) => (
         <div key={a.interrupt_id} className={`action-card${a.decision ? ' is-decided' : ''}`}>
-          {a.action === 'delete' || !a.changes ? (
-            <DeleteBody expense={a.expense} />
-          ) : (
-            <UpdateBody expense={a.expense} changes={a.changes} />
-          )}
+          <ActionBody action={a} />
           {a.decision && (
             <em className={`badge ${a.decision === 'confirm' ? 'badge-ok' : 'badge-muted'}`}>
               {DECISION_LABEL[a.decision]}
