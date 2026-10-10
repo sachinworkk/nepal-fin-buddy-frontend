@@ -583,6 +583,7 @@ export default function PrizeHandoff() {
                       <strong>{vendorOf(en.bill_id) ?? `Bill ${en.bill_number || '—'}`}</strong>
                       <small>
                         Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)} (AD)
+                        {bsLabelOfAd(en.bill_date) && ` · ${bsLabelOfAd(en.bill_date)}`}
                       </small>
                     </span>
                     <span className="list-end">
@@ -674,6 +675,7 @@ export default function PrizeHandoff() {
                       <strong>{b.vendor_name || 'Untitled vendor'}</strong>
                       <small>
                         Bill {b.bill_number} · PAN {b.seller_pan_no} · {fmtAd(b.bill_date)} (AD)
+                        {bsLabelOfAd(b.bill_date) && ` · ${bsLabelOfAd(b.bill_date)}`}
                       </small>
                     </span>
                     <span className="list-end">
@@ -698,7 +700,8 @@ export default function PrizeHandoff() {
                     <span className="list-main">
                       <strong>{vendorOf(en.bill_id) ?? `Bill ${en.bill_number || '—'}`}</strong>
                       <small>
-                        Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)} (AD) · {formatNpr(en.billed_total_amount)}
+                        Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)} (AD)
+                        {bsLabelOfAd(en.bill_date) && ` · ${bsLabelOfAd(en.bill_date)}`} · {formatNpr(en.billed_total_amount)}
                       </small>
                     </span>
                     <span className="list-end">
