@@ -8,9 +8,9 @@ import { URGENT_DAYS } from '../lib/prizeRules'
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 /**
- * Days left to enter bills for this fiscal year's IRD lottery, plus the user's standing.
- * The IRD draw is fortnightly and each draw has a bumper prize and daily prizes.
- * The portal publishes the fiscal-year end (the entry deadline), not the draw date.
+ * Days left to enter bills for the current IRD draw period, plus the user's standing.
+ * Periods are BS half-months; a bill can only be entered in its own period. Each draw has a
+ * bumper prize (whole period) and daily prizes (by purchase date).
  * Silent while loading or on error, like PrizeWinBanner.
  */
 export default function BumperDrawCard({ compact = false }: { compact?: boolean }) {
@@ -28,17 +28,22 @@ export default function BumperDrawCard({ compact = false }: { compact?: boolean 
   return (
     <div className="dash-card bumper-card">
       <span className="dash-label">IRD lottery · Fortnightly draw</span>
-      {days !== null && s.entry_deadline ? (
+      {days !== null && s.entry_deadline && s.draw_date && s.period_start ? (
         <>
           <strong className="dash-big">
             {days === 0 ? 'Last day' : plural(days, 'day', 'days')} {days === 0 ? 'to enter' : 'left'}
             {urgent && <span className="badge badge-warn bumper-badge">Closing soon</span>}
           </strong>
           <span className="dash-muted">
-            to enter bills for the current fiscal year ({s.fiscal_year_name}). Entry deadline {fmtAd(s.entry_deadline)}
+            to enter bills for the draw on {fmtAd(s.draw_date)}
+            {bsLabelOfAd(s.draw_date) && ` · ${bsLabelOfAd(s.draw_date)}`}. Entry deadline {fmtAd(s.entry_deadline)}
             {bsLabelOfAd(s.entry_deadline) && ` · ${bsLabelOfAd(s.entry_deadline)}`}
           </span>
-          <span className="dash-muted">Every fortnightly draw in {s.fiscal_year_name} has a bumper prize and daily prizes. Only bills dated in this fiscal year count.</span>
+          <span className="dash-muted">
+            Bills dated {bsLabelOfAd(s.period_start) || fmtAd(s.period_start)} to{' '}
+            {bsLabelOfAd(s.entry_deadline) || fmtAd(s.entry_deadline)} count: the bumper prize covers
+            the whole period and daily prizes go by purchase date. Older bills can't be entered in a later draw.
+          </span>
         </>
       ) : (
         <strong className="dash-big">Fortnightly draw</strong>

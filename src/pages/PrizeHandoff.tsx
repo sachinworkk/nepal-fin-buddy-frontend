@@ -567,8 +567,8 @@ export default function PrizeHandoff() {
               <div className="list-card">
                 <div className="list-empty">
                   <span>
-                    No eligible bills right now. Confirmed cash bills with a seller PAN and bill number
-                    show up here.
+                    No eligible bills right now. Confirmed cash bills with a seller PAN and bill number,
+                    dated in the current draw period (BS 1st–15th or 16th–month end), show up here.
                   </span>
                   <Link to="/snap" className="btn btn-ghost btn-sm">
                     Snap a bill
@@ -594,6 +594,7 @@ export default function PrizeHandoff() {
                       <small>
                         Bill {b.bill_number} · PAN {b.seller_pan_no} · {fmtAd(b.bill_date)} (AD)
                         {bsLabelOfAd(b.bill_date) && ` · ${bsLabelOfAd(b.bill_date)}`}
+                        {` · draw ${bsLabelOfAd(b.draw_date) || fmtAd(b.draw_date)}`}
                       </small>
                     </span>
                     <span className="list-end">

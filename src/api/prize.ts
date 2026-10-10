@@ -31,7 +31,10 @@ export interface PrizeEligibleBill {
   billed_total_amount: string
   fiscal_year_code: string | null
   fiscal_year_status: string | null
-  days_left: number | null
+  /** Last day to enter the bill: the end of its BS half-month draw period. */
+  entry_deadline: string
+  draw_date: string
+  days_left: number
 }
 
 export interface PrizeHandoffIn {
@@ -171,11 +174,16 @@ export interface PrizeBumperDraw {
   winner_count: number
 }
 
-/** The portal publishes when the fiscal year ends (last day to enter bills), not the draw date. */
+/**
+ * The current IRD draw period (BS 1st–15th, draw on the 16th; or 16th–month end, draw on the
+ * 1st of the next month). `entry_deadline` is the period's last day to enter bills.
+ */
 export interface PrizeSummary {
   fiscal_year_code: string | null
   fiscal_year_name: string | null
+  period_start: string | null
   entry_deadline: string | null
+  draw_date: string | null
   days_left: number | null
   coupons_this_year: number
   coupons_all_time: number
