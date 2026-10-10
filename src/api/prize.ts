@@ -178,9 +178,11 @@ export interface PrizeSummary {
   entry_deadline: string | null
   days_left: number | null
   coupons_this_year: number
+  coupons_all_time: number
   eligible_this_year: number
   pending_handoffs: number
   latest_bumper: PrizeBumperDraw | null
+  latest_daily: PrizeBumperDraw | null
   bumper_prize_amount_npr: string | null
 }
 
