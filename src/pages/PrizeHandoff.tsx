@@ -449,6 +449,7 @@ export default function PrizeHandoff() {
     setNotice('Recorded — your entry is in the history below.')
     toast.success('Entry recorded')
     void qc.invalidateQueries({ queryKey: ['prize-enrollments'] })
+    void qc.invalidateQueries({ queryKey: ['prize-my-wins'] }) // a just-entered coupon may already be a winner
     void qc.invalidateQueries({ queryKey: ['prize-summary'] })
     void qc.invalidateQueries({ queryKey: ['prize-eligible'] })
     void qc.invalidateQueries({ queryKey: ['bills'] })
