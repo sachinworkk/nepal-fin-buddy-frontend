@@ -1,5 +1,5 @@
 import { toast } from 'sonner'
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listBills } from '../api/bills'
@@ -8,7 +8,6 @@ import {
   createPrizeHandoff,
   dismissPrizeHandoff,
   listEligiblePrizeBills,
-  listPrizeWinners,
   listPrizeEnrollments,
   markPrizeSubmitted,
   parsePrizeFieldErrors,
@@ -374,93 +373,6 @@ function BillForm({
   )
 }
 
-const fmtDay = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
-
-const DRAWS_PAGE = 6
-
-/** The portal's published draws, filterable by fiscal year and prize category. */
-function PublishedDraws() {
-  const [fiscalYear, setFiscalYear] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const draws = useInfiniteQuery({
-    queryKey: ['prize-winners', fiscalYear, categoryId],
-    queryFn: ({ pageParam }) => listPrizeWinners(DRAWS_PAGE, pageParam, { fiscalYear, categoryId }),
-    initialPageParam: 0,
-    getNextPageParam: (last) => (last.has_more ? last.offset + last.draws.length : undefined),
-    staleTime: 60_000,
-    retry: false,
-    placeholderData: (prev) => prev,
-  })
-  const pages = draws.data?.pages ?? []
-  const latest = pages.flatMap((p) => p.draws)
-  const options = pages[0]
-  // The portal returns the filter options with every page, even an empty one.
-  const known = options ?? null
-  const filtered = fiscalYear !== '' || categoryId !== ''
-
-  if (draws.isError) return null // portal unreachable: stay out of the way
-
-  return (
-    <>
-      {(latest.length > 0 || filtered) && (
-        <section className="section">
-          <div className="section-head">
-            <h3>Published draws</h3>
-            {known && (
-              <span style={{ display: 'flex', gap: 8 }}>
-                <select className="input" aria-label="Fiscal year" value={fiscalYear} onChange={(e) => setFiscalYear(e.target.value)}>
-                  <option value="">All years</option>
-                  {known.fiscal_years.map((f) => (
-                    <option key={f.fiscal_year_code} value={f.fiscal_year_code}>
-                      {f.display_name} ({f.winner_count})
-                    </option>
-                  ))}
-                </select>
-                <select className="input" aria-label="Prize category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-                  <option value="">All prizes</option>
-                  {known.categories.map((c) => (
-                    <option key={c.category_id} value={c.category_id}>
-                      {c.title_en}
-                    </option>
-                  ))}
-                </select>
-              </span>
-            )}
-          </div>
-          {latest.length === 0 ? (
-            <p className="page-sub">No draws published for this filter yet.</p>
-          ) : (
-            <div className="list-card">
-              {latest.map((d) => (
-                <div key={d.draw_id} className="list-row">
-                  <span className="list-main">
-                    <strong>{d.category_title_en}</strong>
-                    <small>
-                      {d.title_en} · published {fmtDay(d.published_at)} · {d.winners.length} winner
-                      {d.winners.length === 1 ? '' : 's'}
-                    </small>
-                  </span>
-                  <span className="list-end">
-                    <span className={`badge ${d.claim_open ? 'badge-warn' : 'badge-muted'}`}>
-                      {d.claim_open ? `Claim by ${fmtDay(d.claim_deadline)}` : 'Claim closed'}
-                    </span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-          {draws.hasNextPage && (
-            <button type="button" className="btn" disabled={draws.isFetchingNextPage} onClick={() => void draws.fetchNextPage()}>
-              {draws.isFetchingNextPage ? 'Loading…' : 'Show more'}
-            </button>
-          )}
-        </section>
-      )}
-    </>
-  )
-}
-
 export default function PrizeHandoff() {
   const qc = useQueryClient()
   const [selected, setSelected] = useState<PrizeEligibleBill | null>(null)
@@ -722,7 +634,6 @@ export default function PrizeHandoff() {
             </section>
           )}
 
-          <PublishedDraws />
         </>
       )}
 
