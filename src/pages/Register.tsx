@@ -19,7 +19,7 @@ export default function Register({ onDone }: { onDone: () => void }) {
       const t = await register({
         email,
         password,
-        full_name: fullName.trim() || undefined,
+        full_name: fullName.trim(),
       })
       localStorage.setItem('token', t.access_token)
       onDone()
@@ -50,8 +50,8 @@ export default function Register({ onDone }: { onDone: () => void }) {
           <p>Start tracking your money in NPR with BS dates.</p>
         </div>
         <label className="field">
-          <span>Full name (optional)</span>
-          <input className="input" type="text" autoComplete="name" autoFocus
+          <span>Full name</span>
+          <input className="input" type="text" autoComplete="name" autoFocus required
             value={fullName} onChange={(e) => setFullName(e.target.value)} />
         </label>
         <label className="field">

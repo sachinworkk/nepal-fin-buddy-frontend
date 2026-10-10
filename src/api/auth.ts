@@ -16,7 +16,7 @@ export const login = (email: string, password: string) =>
 export const register = (body: {
   email: string
   password: string
-  full_name?: string
+  full_name: string
 }) => post<TokenOut>('/auth/register', body)
 
 export const getMe = () => get<UserOut>('/auth/me')
