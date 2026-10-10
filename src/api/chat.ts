@@ -33,12 +33,19 @@ export type PendingActionChanges = Partial<{
 
 export type Decision = 'confirm' | 'cancel'
 
+/** A budget as it is now, before a pending delete. */
+export interface PendingActionBudget {
+  category: string
+  amount: string
+}
+
 /** An assistant edit/delete waiting for the user; `decision` is null until answered. */
 export interface PendingAction {
   interrupt_id: string
-  action: 'update' | 'delete'
-  expense: PendingActionExpense
-  changes: PendingActionChanges | null
+  action: 'update' | 'delete' | 'budget-delete'
+  expense?: PendingActionExpense | null
+  changes?: PendingActionChanges | null
+  budget?: PendingActionBudget | null
   decision: Decision | null
 }
 

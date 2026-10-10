@@ -121,11 +121,12 @@ function Chat() {
     return s.id
   }
 
-  // An assistant reply may have created, edited or deleted expenses.
+  // An assistant reply may have created, edited or deleted expenses or budgets.
   function refreshData() {
     void qc.invalidateQueries({ queryKey: ['expenses'] })
     void qc.invalidateQueries({ queryKey: ['stats'] })
     void qc.invalidateQueries({ queryKey: ['bills'] })
+    void qc.invalidateQueries({ queryKey: ['budgets'] })
   }
 
   function newChat() {
