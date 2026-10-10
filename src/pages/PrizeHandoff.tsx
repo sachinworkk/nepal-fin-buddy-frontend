@@ -8,6 +8,7 @@ import {
   createPrizeHandoff,
   dismissPrizeHandoff,
   listEligiblePrizeBills,
+  listMyPrizeWins,
   listPrizeEnrollments,
   markPrizeSubmitted,
   parsePrizeFieldErrors,
@@ -389,6 +390,10 @@ export default function PrizeHandoff() {
     placeholderData: (prev) => prev,
   })
 
+  // Same query as PrizeWinBanner, so the cache is shared; History marks the winning rows.
+  const wins = useQuery({ queryKey: ['prize-my-wins'], queryFn: listMyPrizeWins, staleTime: 60_000, retry: false })
+  const winOf = new Map((wins.data ?? []).map((w) => [w.enrollment_id, w]))
+
   const all = entries.data ?? []
   const waiting = all.filter((e) => e.status === 'handed_off')
   const history = all.filter((e) => e.status !== 'handed_off')
@@ -607,7 +612,9 @@ export default function PrizeHandoff() {
                 <h3>History</h3>
               </div>
               <div className="list-card">
-                {history.map((en) => (
+                {history.map((en) => {
+                  const win = winOf.get(en.id)
+                  return (
                   <div key={en.id} className="list-row">
                     <span className="list-main">
                       <strong>{vendorOf(en.bill_id) ?? `Bill ${en.bill_number || '—'}`}</strong>
@@ -615,11 +622,18 @@ export default function PrizeHandoff() {
                         Bill {en.bill_number || '—'} · {fmtAd(en.bill_date)} (AD)
                         {bsLabelOfAd(en.bill_date) && ` · ${bsLabelOfAd(en.bill_date)}`} · {formatNpr(en.billed_total_amount)}
                       </small>
+                      {win && (
+                        <small>
+                          🎉 Won {win.category_title_en} (rank {win.winner_rank})
+                          {win.claim_open ? ` · claim by ${fmtAd(win.claim_deadline)}` : ' · claim window closed'}
+                        </small>
+                      )}
                     </span>
                     <span className="list-end">
                       {en.prize_coupon_number && (
                         <span className="lot-coupon-inline">Coupon {en.prize_coupon_number}</span>
                       )}
+                      {win && <span className="badge badge-warn">Won</span>}
                       {en.status === 'submitted' ? (
                         <span className="badge badge-ok">Submitted</span>
                       ) : en.status === 'dismissed' ? (
@@ -629,7 +643,8 @@ export default function PrizeHandoff() {
                       )}
                     </span>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </section>
           )}
